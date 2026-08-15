@@ -12,7 +12,7 @@ import * as Pin from './pin.js';
 import * as LS from './storage.js';
 import * as Router from './router.js';
 import * as Nav from './components/nav.js';
-import { requestUnlock } from './components/pin-modal.js';
+import { requestUnlock, setupPin } from './components/pin-modal.js';
 import { toast, $ } from './ui.js';
 import { flushOutbox } from './sync.js';
 
@@ -135,6 +135,20 @@ async function boot() {
 
   if (status === 'no-session') Router.navigate('/login', { replace: true });
   else if (status === 'no-family') Router.navigate('/setup', { replace: true });
+
+  // PIN リセットのための Google 再ログインから戻ってきた場合はここで拾う。
+  // （pin-modal.js の recoverPin から遷移した経路。印は1回きりで消える）
+  if (status === 'ok' && Store.get('role') === 'parent') {
+    try {
+      if (await Auth.consumePinReauth()) {
+        await Pin.clearPin();
+        await setupPin();
+      }
+    } catch (e) {
+      console.error('[app] PIN の再設定に失敗', e);
+      toast('番号の再設定に失敗しました', 'error');
+    }
+  }
 
   // 溜まっていたオフライン書き込みを送る
   flushOutbox().catch(() => {});

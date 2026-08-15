@@ -19,7 +19,6 @@ import { isUnlocked } from './pin.js';
  */
 export const ROUTES = [
   { path: '/login',     view: 'auth-view', public: true },
-  { path: '/signup',    view: 'auth-view', public: true },
   { path: '/join',      view: 'auth-view', public: true },
   { path: '/setup',     view: 'auth-view' },                       // 家族の作成/参加
 

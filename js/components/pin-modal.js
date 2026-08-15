@@ -168,7 +168,15 @@ export async function requestUnlock() {
 
 /**
  * PIN 忘れのリカバリ。
- * 親アカウントのメール+パスワードで本人確認してから再設定する。
+ *
+ * ログインが Google のみになったので、本人確認は
+ * 「Google でログインし直してもらう」に置き換えた。
+ * prompt=login を付けるため、端末に Google のセッションが残っていても
+ * Google 側でパスワードの再入力が必ず求められる。
+ * ＝ 親のログイン済み端末を娘が触っても、ここは通れない。
+ *
+ * Google へ遷移して戻ってくる間にこの画面は失われるので、
+ * 印を sessionStorage に置き、app.js の起動処理で拾って再設定へ進む。
  * （PIN の平文はどこにも保存していないので「思い出させる」ことはできない）
  */
 export async function recoverPin() {
@@ -177,20 +185,13 @@ export async function recoverPin() {
     const m = modal(`
       <p class="modal__title">番号のリセット</p>
       <p style="color:var(--text-sub);font-size:var(--fs-sm);margin-bottom:var(--sp-3)">
-        ログイン中のアカウントのパスワードで本人確認をします。確認できたら新しい番号を決められます。
+        <b>${esc(email)}</b> で Google にログインし直して本人確認をします。
+        確認できたら、そのまま新しい番号を決められます。
       </p>
-      <label class="field">
-        <span class="field__label">メールアドレス</span>
-        <input class="input" type="email" value="${esc(email)}" data-email autocomplete="username">
-      </label>
-      <label class="field">
-        <span class="field__label">パスワード</span>
-        <input class="input" type="password" data-pw autocomplete="current-password">
-      </label>
       <p class="pin-error" data-error></p>
       <div class="modal__actions">
         <button type="button" class="btn btn--outline" data-act="cancel">やめる</button>
-        <button type="button" class="btn btn--primary" data-act="ok">かくにん</button>
+        <button type="button" class="btn btn--primary" data-act="ok">Google で確認する</button>
       </div>
     `, { onClose: () => resolve(false) });
 
@@ -202,14 +203,10 @@ export async function recoverPin() {
 
       ok.disabled = true;
       err.textContent = '';
-      const mail = m.box.querySelector('[data-email]').value.trim();
-      const pw = m.box.querySelector('[data-pw]').value;
       try {
-        const valid = await Auth.verifyPassword(mail, pw);
-        if (!valid) { err.textContent = 'パスワードが違います'; ok.disabled = false; return; }
-        await Pin.clearPin();
-        m.close();
-        resolve(await setupPin());
+        Auth.beginPinReauth();
+        // 成功するとページごと Google へ遷移する（ここには戻ってこない）
+        await Auth.signInWithGoogle({ forceReauth: true });
       } catch (e) {
         err.textContent = e.message || '確認に失敗しました';
         ok.disabled = false;
