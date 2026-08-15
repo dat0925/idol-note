@@ -6,7 +6,7 @@
 import * as db from './../db.js';
 import * as Store from './../store.js';
 import * as Stage from './../components/stage.js';
-import { esc, toast, progressRing, progressBar, emptyState, skeleton } from './../ui.js';
+import { esc, toast, progressRing, progressBar, emptyState, skeleton, vibrate } from './../ui.js';
 import {
   jstToday, shortDate, minutesText, addDays, deadlineText, deadlineLevel,
   BADGES, AUDITION_STATUS,
@@ -14,6 +14,7 @@ import {
 
 let root = null;
 let unsub = [];
+let onPick = null;
 let state = { loading: true };
 
 async function load() {
@@ -93,7 +94,27 @@ function kidView() {
     ${cheerCard()}
     ${rewardCard()}
     ${badgeCard()}
+    ${heroPicker()}
   `;
+}
+
+/**
+ * 背景イラストを選ぶ。
+ * 「自分の画面」だと思えることがやる気につながるので、親ではなく本人に選ばせる。
+ */
+function heroPicker() {
+  const now = Stage.currentHero();
+  return `<div class="card" style="margin-top:var(--sp-3)">
+    <p class="card__title">🖼️ はいけいをえらぶ</p>
+    <div class="hero-pick" role="radiogroup" aria-label="はいけいのイラスト">
+      ${Stage.HEROES.map((id) => `
+        <button type="button" class="hero-pick__item${id === now ? ' is-on' : ''}"
+                role="radio" aria-checked="${id === now}"
+                data-hero="${id}" aria-label="イラスト${id}">
+          <img src="${esc(Stage.heroThumb(id))}" alt="" loading="lazy" decoding="async">
+        </button>`).join('')}
+    </div>
+  </div>`;
 }
 
 function cheerCard() {
@@ -296,12 +317,25 @@ export default {
   async mount(el) {
     root = el;
     state = { loading: true };
+
+    // 背景イラストの切り替え。委譲にしているので再描画しても付け直さなくてよい
+    onPick = (ev) => {
+      const btn = ev.target.closest('[data-hero]');
+      if (!btn) return;
+      Stage.setHero(Number(btn.dataset.hero));
+      vibrate(10);
+      render();
+    };
+    root.addEventListener('click', onPick);
+
     unsub.push(Store.subscribe('mode', () => load()));
     await load();
   },
   destroy() {
     unsub.forEach((f) => f());
     unsub = [];
+    if (onPick) root?.removeEventListener('click', onPick);
+    onPick = null;
     root = null;
   },
 };

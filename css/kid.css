@@ -33,7 +33,24 @@
   background-attachment: fixed;
 }
 
-[data-mode="kid"] .card { box-shadow: 0 3px 0 var(--border), var(--shadow-1); }
+/* =====================================================================
+   カードをすりガラスにして、背景のイラストを透かす
+   ・不透明のままだと、せっかくの背景がカードの裏に完全に隠れて見えない
+   ・backdrop-filter が無い環境では、ほぼ不透明の白にフォールバックする
+     （@supports で分岐。文字が読めなくなるほうが害が大きい）
+   ===================================================================== */
+[data-mode="kid"] .card {
+  box-shadow: 0 3px 0 var(--border), var(--shadow-1);
+  background: rgba(255, 255, 255, .94);
+}
+@supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  [data-mode="kid"] .card,
+  [data-mode="kid"] .cheer {
+    background: rgba(255, 255, 255, .74);
+    -webkit-backdrop-filter: blur(12px) saturate(1.15);
+            backdrop-filter: blur(12px) saturate(1.15);
+  }
+}
 [data-mode="kid"] .bottom__item .ico { font-size: 26px; }
 [data-mode="kid"] .bottom__item { font-size: 12px; }
 
@@ -50,6 +67,50 @@
 .mission__label { font-size: var(--fs-sm); font-weight: 700; color: #a2596f; }
 .mission__count { font-size: var(--fs-2xl); font-weight: 900; line-height: 1.1; }
 .mission__note { font-size: var(--fs-sm); color: #8a6070; }
+
+/* =====================================================================
+   はいけいをえらぶ（背景イラストのピッカー）
+   ・自分で選べると「自分の画面」になる。やる気の下地になるので本人に選ばせる
+   ・9歳が押すので的は大きく（56px 以上）
+   ===================================================================== */
+.hero-pick {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+}
+.hero-pick__item {
+  /* button の既定を消す */
+  appearance: none;
+  padding: 0;
+  cursor: pointer;
+
+  aspect-ratio: 1 / 1;
+  min-height: var(--tap);
+  overflow: hidden;
+  border: 3px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  transition: border-color .15s ease, transform .15s ease;
+}
+.hero-pick__item img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.hero-pick__item.is-on {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 var(--accent-soft);
+}
+/* キーボード操作でも今どこにいるか分かるようにする */
+.hero-pick__item:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-pick__item { transition: none; }
+  .hero-pick__item.is-on { transform: none; }
+}
 
 /* =====================================================================
    練習メニューの大きなトグルカード

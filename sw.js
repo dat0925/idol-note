@@ -9,7 +9,7 @@
    ★リリースのたびに CACHE の版数を上げること（デプロイ手順に含める）。
    ===================================================================== */
 
-const CACHE = 'idol-v4';
+const CACHE = 'idol-v6';
 
 const SHELL = [
   './',
@@ -47,9 +47,14 @@ const SHELL = [
   './js/views/settings.js',
   './icon-192.png',
   './icon-512.png',
-  // 背景イラスト。まだ置いていない環境では cache.add が失敗するが、
-  // install は Promise.allSettled なので他のファイルは正常にキャッシュされる。
-  './assets/idol-hero.webp',
+  // 背景イラスト3種＋えらぶボタン用サムネ。
+  // install は Promise.allSettled なので、1つ欠けても他は正常にキャッシュされる。
+  './assets/idol-hero-1.webp',
+  './assets/idol-hero-2.webp',
+  './assets/idol-hero-3.webp',
+  './assets/idol-hero-1-thumb.webp',
+  './assets/idol-hero-2-thumb.webp',
+  './assets/idol-hero-3-thumb.webp',
 ];
 
 self.addEventListener('install', (ev) => {
@@ -73,6 +78,24 @@ self.addEventListener('message', (ev) => {
   if (ev.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
+/* ★ここが効かないと Network First が名前倒れになる。
+
+   fetch(req) は既定でブラウザのHTTPキャッシュを経由する。
+   このアプリはビルドしない＝ファイル名にハッシュが付かないので、
+   一度 HTTPキャッシュに載った style.css / app.js は、サーバー側を
+   更新しても max-age が切れるまで古いまま返り続ける。
+   （実際に stage.css を直したのに古い値が適用され続ける事故を踏んだ）
+
+   コードとマークアップは毎回ネットワークから取り直す。
+   画像は差し替え頻度が低く、4Gで毎回落とすと重いので HTTPキャッシュに任せる
+   （差し替え時は CACHE の版数を上げれば precache し直される）。 */
+const ALWAYS_FRESH = /\.(?:html|css|js|json|webmanifest)$/i;
+
+function fetchInit(url) {
+  const fresh = ALWAYS_FRESH.test(url.pathname) || url.pathname.endsWith('/');
+  return fresh ? { cache: 'no-store' } : undefined;
+}
+
 self.addEventListener('fetch', (ev) => {
   const req = ev.request;
   if (req.method !== 'GET') return;
@@ -88,7 +111,7 @@ self.addEventListener('fetch', (ev) => {
   if (req.mode === 'navigate') {
     ev.respondWith((async () => {
       try {
-        const fresh = await fetch(req);
+        const fresh = await fetch(req, { cache: 'no-store' });
         const cache = await caches.open(CACHE);
         cache.put('./index.html', fresh.clone());
         return fresh;
@@ -103,7 +126,7 @@ self.addEventListener('fetch', (ev) => {
   if (url.origin === self.location.origin) {
     ev.respondWith((async () => {
       try {
-        const fresh = await fetch(req);
+        const fresh = await fetch(req, fetchInit(url));
         if (fresh.ok) {
           const cache = await caches.open(CACHE);
           cache.put(req, fresh.clone());

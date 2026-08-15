@@ -17,7 +17,13 @@
 //   スタイル再計算が走って、古い端末でスクロールが引っかかる。
 // =====================================================================
 
-const HERO_SRC = './assets/idol-hero.webp';
+import * as LS from './../storage.js';
+
+// 背景イラストは3種類。娘が気分で選べるようにしてある。
+// ファイルは tools/build-hero.py が書き出す（assets/README.md 参照）。
+export const HEROES = [1, 2, 3];
+const heroSrc = (id) => `./assets/idol-hero-${id}.webp`;
+export const heroThumb = (id) => `./assets/idol-hero-${id}-thumb.webp`;
 
 // ★装飾は絵文字ではなくインラインSVGで描く。
 //   絵文字はフォント依存で、端末に字が無いと豆腐（□）になる。
@@ -141,17 +147,14 @@ export function mount() {
   el.innerHTML = `
     <div class="stage__layer stage__glow"></div>
     <div class="stage__layer stage__stars">${buildStars()}</div>
-    <div class="stage__layer stage__hero"><img alt="" decoding="async" fetchpriority="low"></div>
+    <div class="stage__layer stage__hero"></div>
     <div class="stage__layer stage__sparks">${buildSparks()}</div>
   `;
   // #shell より前（背面）に置く
   document.body.insertBefore(el, document.body.firstChild);
 
   heroLayer = el.querySelector('.stage__hero');
-  const img = heroLayer.querySelector('img');
-  // 画像が無い状態でも画面が壊れないよう、失敗したらこの層だけ畳む
-  on(img, 'error', () => heroLayer.classList.add('is-missing'));
-  img.src = HERO_SRC;
+  setHero(LS.getHeroId());
 
   if (reduced) return;   // 動かさない設定なら、ここで終わり（静止した装飾として残る）
 
@@ -183,4 +186,35 @@ export function destroy() {
 export function setProgress(done, total) {
   if (!el) return;
   el.classList.toggle('is-cheering', total > 0 && done >= total);
+}
+
+/**
+ * 背景イラストを切り替えて記憶する。
+ *
+ * 差し替えは新しい img を作ってから入れ替える。
+ * 同じ img の src を書き換えると、読み込み中に一瞬なにも表示されない。
+ * 娘が続けてタップしたときにチカチカさせない。
+ */
+export function setHero(id) {
+  LS.setHeroId(id);
+  if (!heroLayer) return;
+
+  const next = new Image();
+  next.alt = '';
+  next.decoding = 'async';
+  next.addEventListener('load', () => {
+    if (!heroLayer) return;                 // 読み込み中に destroy された
+    heroLayer.classList.remove('is-missing');
+    heroLayer.replaceChildren(next);
+  }, { once: true });
+  // 画像が無い/読めないときはこの層だけ畳む。ほかの層は残るので画面は壊れない
+  next.addEventListener('error', () => {
+    heroLayer?.classList.add('is-missing');
+  }, { once: true });
+  next.src = heroSrc(LS.getHeroId());
+}
+
+/** いま選ばれている番号 */
+export function currentHero() {
+  return LS.getHeroId();
 }

@@ -129,6 +129,20 @@ export function setMode(mode) {
   try { localStorage.setItem('idol:mode', mode === 'adult' ? 'adult' : 'kid'); } catch { /* noop */ }
 }
 
+// 背景イラストの選択（1..HERO_MAX）。
+// 端末ごとの見た目の好みなので mode と同じく localStorage に置く。
+// サーバーに置くと、選ぶたびに通信が要るうえ、
+// 家族で1つの値を取り合うことになる（親と娘で好みが違う）。
+const HERO_MAX = 3;
+export function getHeroId() {
+  const n = Number(safeGet('idol:hero'));
+  return Number.isInteger(n) && n >= 1 && n <= HERO_MAX ? n : 1;
+}
+export function setHeroId(n) {
+  const v = Number.isInteger(n) && n >= 1 && n <= HERO_MAX ? n : 1;
+  try { localStorage.setItem('idol:hero', String(v)); } catch { /* noop */ }
+}
+
 // ── PINキャッシュ（別端末ログイン時にサーバーから流し込む）──
 export function readPinCache() {
   return readJSON('pin', null);   // { salt, hash, iterations }

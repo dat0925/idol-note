@@ -77,6 +77,11 @@
 /* ── 手前: 2人のイラスト ─────────────────────────────── */
 .stage__hero {
   --depth: 0.5;
+  /* ★この層だけ実寸にする。
+     .stage__layer の inset:-10% のままだと、下寄せ・右寄せの基準が
+     画面の外側になり、イラストが画面外に押し出されて見えなくなる。
+     視差の移動量は最大でも 24px 程度なので、はみ出しは要らない。 */
+  inset: 0;
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -85,7 +90,8 @@
   width: min(86vw, 460px);
   /* 画面下に足元を沈めて「そこに立っている」感じにする */
   margin-bottom: -6%;
-  opacity: .34;
+  /* カード側がすりガラスなので、ここは濃いめでちょうどよくなる */
+  opacity: .58;
   /* 上端を溶かして、カードの下に自然に潜り込ませる */
   -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 26%, #000 100%);
           mask-image: linear-gradient(180deg, transparent 0%, #000 26%, #000 100%);
@@ -145,5 +151,12 @@
 
 /* 画面が低いときは主張しすぎないように */
 @media (max-height: 560px) {
-  .stage__hero img { opacity: .22; }
+  .stage__hero img { opacity: .34; }
+}
+
+/* PCでは本文が中央の1カラムに収まるので、イラストを右に逃がして
+   カードと重ならない場所に立たせる（スマホでは中央のまま） */
+@media (min-width: 900px) {
+  .stage__hero { justify-content: flex-end; padding-right: 4vw; }
+  .stage__hero img { width: min(38vw, 520px); opacity: .72; }
 }
