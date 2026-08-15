@@ -1,6 +1,9 @@
 node_modules/
 .env
 .env.*
+
+# Claude Code の端末ごとのローカル設定（.mcp.json はコミットする）
+.claude/settings.local.json
 *.log
 .DS_Store
 Thumbs.db
