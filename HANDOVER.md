@@ -275,15 +275,37 @@ MCP の `apply_migration` で流すか、ダッシュボード → SQL Editor �
     `security_invoker = true` を `pg_class.reloptions` で確認
   - security advisor の `idol_*` 関連 WARN を 0010 で解消
     （残る `idol_family_id` 等の SECURITY DEFINER 警告は意図通り）
+- **RLS 突破テスト（DB層）を実施（2026-08-15）— 全20項目 期待どおり**
+  - スクリプト: `supabase/tests/idol_rls_probe.sql`（本番DBで再実行可・残留物なし）
+
+### RLS 突破テストの結果（2026-08-15）
+
+`set local role authenticated` + `request.jwt.claims` でアプリと同じ権限になりすまし、
+最後に例外でロールバックする方式。**postgres ロールのまま select しても
+RLS を素通りするので検証にならない**点に注意。
+
+| 検証 | 結果 |
+|---|---|
+| 子から `idol_parent_pins` / `idol_audition_results` | 0件 |
+| 子から `idol_body_records` | `visible_to_child` の1行のみ（非公開の体重は0件） |
+| 子が自分の `role` を `parent` に変更 | 拒否（`idol_guard_member_role`） |
+| 子が体重記録を書き込み | 拒否（RLS） |
+| 子が別家族へメンバー追加 | 拒否（RLS） |
+| 他家族の練習記録 / `v_idol_streaks` / `v_idol_points` | 0件・自分の分のみ |
+| **`reveal_to_child` を ON 後**、子から `shared_result` | `failed` が見える（転記OK） |
+| **同上、子から親メモ・費用** | **0件（伝えた後も見えない）** |
+| 他家族の family_id 配下への Storage 保存 | 拒否 |
+| 子から `private/` 配下の読み書き | 0件 / 拒否 |
+| 子が ごほうびを `redeemed` に / `cost_points` 改ざん | 拒否（`idol_guard_reward_redeem`） |
+| 子が親になりすまして応援投稿 | 拒否 |
 
 ### まだやっていないこと（次にやるべきこと）
-1. 親・娘の2アカウントを作成し、`idol_create_family` / `idol_join_family` を通す
-2. **子アカウントでの RLS 突破テスト**（CLAUDE.md の手順）
-   ※ここまでは「スキーマが正しいこと」の確認であって、
-     実アカウントで機密が返らないことはまだ検証していない
-3. 別家族をもう1つ作り、`v_idol_streaks` に他家族の行が出ないことを確認
-4. 他家族の family_id を先頭に付けたパスへの Storage アップロードが 403 になることを確認
-5. 実機（スマホ）で PWA インストールとオフライン起動を確認
+1. 親・娘の2アカウントを実際に作成し、アプリ経由で
+   `idol_create_family` / `idol_join_family` を通す
+   ※上の突破テストは **DB層（Postgres の RLS）** の検証。
+     PostgREST 経由・PIN・画面遷移まで含めた通しの確認はまだ
+2. 実機（スマホ）で PWA インストールとオフライン起動を確認
+3. 写真アップロード〜署名付きURL表示の実地確認（Canvas圧縮まわり）
 
 ### 既知の割り切り
 - **ダークモード非対応**（意図的）。kid×adult で既に2テーマあり検証コストが倍増するため。
