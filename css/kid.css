@@ -88,6 +88,25 @@
     -webkit-backdrop-filter: blur(16px);
             backdrop-filter: blur(16px);
   }
+
+  /* 練習メニューのカードも透かす。
+     ★選んだ状態は「濃くする」ことで残す。
+       未選択(.62)と選択済み(.88)で不透明度に差をつけているので、
+       背景の絵が透けていても、どれを押したか一目で分かる。
+       状態を色だけに頼らせない（チェックマークも別に出している）。 */
+  [data-mode="kid"] .menu-card {
+    background: rgba(255, 255, 255, .62);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+            backdrop-filter: blur(18px) saturate(1.2);
+  }
+  [data-mode="kid"] .menu-card[aria-pressed="true"] {
+    background: rgba(255, 227, 238, .88);
+  }
+
+  /* 週スタンプの丸も、背景がうっすら透けるくらいに */
+  [data-mode="kid"] .stamp-day__mark {
+    background: rgba(253, 242, 247, .72);
+  }
 }
 /* こどもは的を大きく。SVG なので font-size ではなく実寸を上げる */
 [data-mode="kid"] .bottom__item .ico-svg { width: 28px; height: 28px; }
@@ -184,7 +203,11 @@
   background: var(--accent-soft);
   border-color: var(--accent);
 }
-.menu-card[aria-pressed="true"] .menu-card__time { color: var(--accent); }
+/* ★選択中の「20分めやす」に --accent(#ff6fa5) をそのまま使うと、
+   淡いピンクの下地の上でコントラストが 2.18 しかなく読めない。
+   同系色のまま濃くした #b03566 なら 4.95 で基準(4.5)を満たす。
+   「選ばれている」ことはピンク系の色・枠線・チェックマークの3つで伝わる。 */
+.menu-card[aria-pressed="true"] .menu-card__time { color: #b03566; }
 /* 状態は色だけに頼らない: チェックマークも出す */
 .menu-card__check {
   position: absolute; top: 8px; right: 8px;
