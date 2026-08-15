@@ -104,11 +104,20 @@ async function handleSubmit(ev) {
 
   try {
     if (kind === 'create') {
-      await Auth.createFamily(fd.familyName.trim(), fd.displayName.trim());
+      // フォームは novalidate（ブラウザ既定の吹き出しを出さないため）なので、
+      // markup の required は効かない。必須チェックはここで自前でやる。
+      // ※これを省いて空のまま登録すると、呼び名が既定値で埋まってしまう
+      const displayName = fd.displayName.trim();
+      if (!displayName) throw new Error('あなたの呼び名を入力してください');
+      await Auth.createFamily(fd.familyName.trim(), displayName);
       await afterAuth();
       toast('家族をつくりました！設定画面から招待コードを確認できます', 'ok', 5000);
     } else if (kind === 'join') {
-      await Auth.joinFamily(fd.code.trim().toUpperCase(), fd.displayName.trim(), true);
+      const code = fd.code.trim().toUpperCase();
+      const displayName = fd.displayName.trim();
+      if (!code) throw new Error('招待コードを入力してください');
+      if (!displayName) throw new Error('なまえを入力してください');
+      await Auth.joinFamily(code, displayName, true);
       await afterAuth();
       toast('参加しました！', 'ok');
     }
