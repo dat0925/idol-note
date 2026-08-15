@@ -248,10 +248,16 @@ views は必ず db.js を通す。
 | `0007_idol_gamification.sql` | cheer_messages(Realtime) / rewards / earned_badges |
 | `0008_idol_views.sql` | v_idol_streaks / v_idol_points / v_idol_calendar |
 | `0009_idol_storage.sql` | idol-media バケット + storage.objects ポリシー |
+| `0010_idol_advisor_fixes.sql` | 適用後の advisor 指摘対応（search_path 固定 / トリガー関数の EXECUTE 剥奪） |
+
+### 適用状況
+**0001〜0010 は 2026-08-15 に本番プロジェクト（`sfhtvtcmgueystyuhzvd`）へ適用済み。**
+`supabase_migrations.schema_migrations` に `idol_0001_core` 〜 `idol_0010_advisor_fixes`
+として記録されている。
 
 ### 適用方法
-Supabase ダッシュボード → SQL Editor に、0001 から順に貼って実行する。
-（このリポジトリには Supabase MCP / CLI のリンク設定を入れていない）
+`.mcp.json` に Supabase MCP をプロジェクトスコープで入れてある。
+MCP の `apply_migration` で流すか、ダッシュボード → SQL Editor に 0001 から順に貼る。
 
 ---
 
@@ -259,18 +265,25 @@ Supabase ダッシュボード → SQL Editor に、0001 から順に貼って�
 
 ### できていること
 - 全画面の実装（こども/おとな両モード）
-- マイグレーション 0001〜0009 の作成
+- マイグレーション 0001〜0010 の作成
 - 純関数テスト20件パス
 - ヘッドレスChromeで全画面のレンダリング確認（コンソールエラー0件）
+- **マイグレーション 0001〜0010 の本番適用（2026-08-15）**
+- **適用後の実測確認（2026-08-15）**
+  - `idol_*` の全17テーブルが `rls_enabled = true`、ポリシーは各3〜4本
+  - `v_idol_streaks` / `v_idol_points` / `v_idol_calendar` の
+    `security_invoker = true` を `pg_class.reloptions` で確認
+  - security advisor の `idol_*` 関連 WARN を 0010 で解消
+    （残る `idol_family_id` 等の SECURITY DEFINER 警告は意図通り）
 
 ### まだやっていないこと（次にやるべきこと）
-1. **マイグレーションの実適用**（SQL Editor で 0001→0009）
-2. 適用後、Supabase ダッシュボードで全 `idol_*` テーブルの `rls_enabled` を実測確認
-3. 親・娘の2アカウントを作成し、`idol_create_family` / `idol_join_family` を通す
-4. **子アカウントでの RLS 突破テスト**（CLAUDE.md の手順）
-5. 別家族をもう1つ作り、`v_idol_streaks` に他家族の行が出ないことを確認
-6. 他家族の family_id を先頭に付けたパスへの Storage アップロードが 403 になることを確認
-7. 実機（スマホ）で PWA インストールとオフライン起動を確認
+1. 親・娘の2アカウントを作成し、`idol_create_family` / `idol_join_family` を通す
+2. **子アカウントでの RLS 突破テスト**（CLAUDE.md の手順）
+   ※ここまでは「スキーマが正しいこと」の確認であって、
+     実アカウントで機密が返らないことはまだ検証していない
+3. 別家族をもう1つ作り、`v_idol_streaks` に他家族の行が出ないことを確認
+4. 他家族の family_id を先頭に付けたパスへの Storage アップロードが 403 になることを確認
+5. 実機（スマホ）で PWA インストールとオフライン起動を確認
 
 ### 既知の割り切り
 - **ダークモード非対応**（意図的）。kid×adult で既に2テーマあり検証コストが倍増するため。
