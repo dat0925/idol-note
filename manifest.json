@@ -1,0 +1,22 @@
+{
+  "name": "アイドルノート",
+  "short_name": "アイドルノート",
+  "description": "なりたい自分に、まいにち一歩ずつ。親子でつかうアイドル活動ノート。",
+  "lang": "ja",
+  "dir": "ltr",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#fff7fb",
+  "theme_color": "#ff6fa5",
+  "orientation": "any",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "きょうの練習", "short_name": "練習", "url": "./#/practice" },
+    { "name": "アルバム", "short_name": "アルバム", "url": "./#/album" }
+  ]
+}

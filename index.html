@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja" data-mode="kid">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ff6fa5">
+<meta name="description" content="アイドルになりたい夢を、まいにちの練習から本番まで親子でいっしょに管理するノート">
+<title>アイドルノート</title>
+
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="アイドルノート">
+
+<link rel="stylesheet" href="./css/style.css">
+<link rel="stylesheet" href="./css/kid.css">
+<link rel="stylesheet" href="./css/adult.css">
+
+<script>
+  // ちらつき（FOUC）防止: CSSより先にモードを確定させる。
+  // localStorage に保存された表示モードを、描画前に html 要素へ適用する。
+  try {
+    var m = localStorage.getItem('idol:mode');
+    if (m !== 'adult' && m !== 'kid') m = 'kid';
+    document.documentElement.dataset.mode = m;
+    document.querySelector('meta[name="theme-color"]')
+      .setAttribute('content', m === 'adult' ? '#6c63c7' : '#ff6fa5');
+  } catch (e) { /* プライベートモード等で localStorage が使えなくても続行 */ }
+</script>
+</head>
+<body>
+
+<!-- 起動スプラッシュ。app.js が認証判定を終えたら外す -->
+<div id="boot" class="boot">
+  <div class="boot__star">⭐</div>
+  <p class="boot__text">よみこみちゅう…</p>
+</div>
+
+<div id="shell" class="shell" hidden>
+  <!-- ヘッダ -->
+  <header class="hdr">
+    <button class="hdr__brand" type="button" data-nav="#/home">
+      <span class="hdr__logo">⭐</span>
+      <span class="hdr__title" id="hdrTitle">アイドルノート</span>
+    </button>
+    <div class="hdr__right">
+      <span class="streak-badge" id="streakBadge" hidden>🔥 <b>0</b>日</span>
+      <button class="hdr__mode" id="modeToggle" type="button" hidden></button>
+      <button class="hdr__avatar" id="userMenu" type="button" aria-label="アカウント">👤</button>
+    </div>
+  </header>
+
+  <!-- PC用サイドバー（おとなモードのみ表示） -->
+  <nav class="side" id="sideNav" aria-label="メインメニュー"></nav>
+
+  <!-- 画面本体 -->
+  <main class="main" id="app" tabindex="-1"></main>
+
+  <!-- スマホ用ボトムナビ -->
+  <nav class="bottom" id="bottomNav" aria-label="メインメニュー"></nav>
+</div>
+
+<!-- モーダル/トースト/演出のマウント先 -->
+<div id="modalRoot"></div>
+<div id="toastRoot" class="toast-root" role="status" aria-live="polite"></div>
+<div id="fxRoot" class="fx-root" aria-hidden="true"></div>
+
+<!-- 更新バー -->
+<div id="updateBar" class="update-bar" hidden>
+  <span>新しいバージョンがあります</span>
+  <button type="button" id="updateLater" class="btn btn--ghost btn--sm">あとで</button>
+  <button type="button" id="updateNow" class="btn btn--primary btn--sm">更新</button>
+</div>
+
+<!-- オフライン表示 -->
+<div id="offlineBar" class="offline-bar" hidden>📴 オフラインです。記録は端末に保存され、つながったら送信されます。</div>
+
+<script type="module" src="./js/app.js"></script>
+</body>
+</html>

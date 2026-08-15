@@ -1,0 +1,114 @@
+/* =====================================================================
+   おとなモード — トークンの上書き＋管理系パーツ
+   情報密度高め / 落ち着いた配色 / PCではサイドバー
+   ===================================================================== */
+
+[data-mode="adult"] {
+  --fs-xs: 11px; --fs-sm: 12px; --fs-md: 14px;
+  --fs-lg: 16px; --fs-xl: 20px; --fs-2xl: 26px;
+
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px;
+
+  --tap: 44px;
+  --nav-h: 56px;
+  --header-h: 52px;
+
+  --bg: #f6f5f9;
+  --surface: #ffffff;
+  --surface-2: #fafafc;
+  --text: #252230;
+  --text-sub: #6b6879;
+  --border: #e5e3ec;
+  --accent: #6c63c7;
+  --accent-ink: #ffffff;
+  --accent-soft: #eceaf9;
+}
+
+[data-mode="adult"] .btn { border-radius: var(--r-md); }
+[data-mode="adult"] .chip { border-radius: var(--r-md); }
+
+/* =====================================================================
+   ダッシュボードの統計タイル
+   ===================================================================== */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--sp-3); }
+.stat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: var(--sp-3) var(--sp-4);
+}
+.stat__label { font-size: var(--fs-xs); color: var(--text-sub); font-weight: 700; letter-spacing: .04em; }
+.stat__value { font-size: var(--fs-2xl); font-weight: 800; line-height: 1.2; }
+.stat__unit  { font-size: var(--fs-sm); font-weight: 700; color: var(--text-sub); margin-left: 2px; }
+.stat__note  { font-size: var(--fs-xs); color: var(--text-sub); }
+.stat--warn .stat__value { color: var(--warn); }
+.stat--danger .stat__value { color: var(--danger); }
+
+/* =====================================================================
+   練習ヒートマップ
+   ===================================================================== */
+.heat { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); gap: 3px; overflow-x: auto; padding-bottom: var(--sp-2); }
+.heat__cell { width: 13px; height: 13px; border-radius: 3px; background: var(--surface-2); }
+.heat__cell[data-lv="1"] { background: #d8d5f0; }
+.heat__cell[data-lv="2"] { background: #b3ade4; }
+.heat__cell[data-lv="3"] { background: #8b81d6; }
+.heat__cell[data-lv="4"] { background: #6c63c7; }
+.heat-legend { display: flex; align-items: center; gap: 4px; font-size: var(--fs-xs); color: var(--text-sub); margin-top: var(--sp-2); }
+
+/* =====================================================================
+   テーブル（履歴・一覧）
+   ===================================================================== */
+.table-wrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+.table th, .table td { padding: var(--sp-2) var(--sp-3); text-align: left; white-space: nowrap; }
+.table th { color: var(--text-sub); font-weight: 700; border-bottom: 1px solid var(--border); font-size: var(--fs-xs); }
+.table td { border-bottom: 1px solid var(--border); }
+.table tbody tr:hover { background: var(--surface-2); }
+.table tr.is-urgent td { background: #fdf2f2; }
+.table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* =====================================================================
+   目標ツリー
+   ===================================================================== */
+.tree__node { border-left: 2px solid var(--border); padding-left: var(--sp-3); margin-left: var(--sp-2); }
+.tree__row {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm);
+}
+.tree__row:hover { background: var(--surface-2); }
+.tree__title { flex: 1; font-weight: 600; }
+.tree__title.is-done { text-decoration: line-through; color: var(--text-sub); }
+.tree__bar { width: 96px; }
+.tree__pct { font-size: var(--fs-xs); color: var(--text-sub); width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+.tree--big > .tree__row { font-size: var(--fs-lg); font-weight: 800; }
+
+/* =====================================================================
+   カレンダー
+   ===================================================================== */
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+.cal__dow { background: var(--surface-2); text-align: center; padding: var(--sp-2) 0; font-size: var(--fs-xs); font-weight: 700; color: var(--text-sub); }
+.cal__day { background: var(--surface); min-height: 88px; padding: var(--sp-2); font-size: var(--fs-xs); }
+.cal__day--out { background: var(--surface-2); color: var(--text-sub); }
+.cal__day--today .cal__num { background: var(--accent); color: #fff; border-radius: 50%; width: 20px; height: 20px; display: grid; place-content: center; }
+.cal__num { font-weight: 700; margin-bottom: 2px; }
+.cal__ev { display: block; border-radius: 3px; padding: 1px 4px; margin-bottom: 2px; color: #fff; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal__dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); margin-right: 3px; }
+
+/* =====================================================================
+   折れ線グラフ（体重・身長）
+   ===================================================================== */
+.chart { width: 100%; height: auto; }
+.chart__grid { stroke: var(--border); stroke-width: 1; }
+.chart__line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.chart__area { fill: var(--accent-soft); opacity: .6; }
+.chart__dot  { fill: var(--accent); }
+.chart__axis { fill: var(--text-sub); font-size: 10px; }
+
+/* デリケート情報の注意書き */
+.notice {
+  display: flex; gap: var(--sp-2); align-items: flex-start;
+  background: #fdf6e8; border: 1px solid #f0e0bd; border-radius: var(--r-md);
+  padding: var(--sp-3); font-size: var(--fs-sm); color: #7a6231;
+  margin-bottom: var(--sp-3);
+}
+
+/* おとなモードではこども専用パーツを隠す */
+[data-mode="adult"] .kid-only { display: none !important; }

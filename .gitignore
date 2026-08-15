@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Supabase CLI のローカル設定（service_role キーが入りうる）
+.supabase/
+supabase/.branches/
+supabase/.temp/

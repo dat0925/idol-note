@@ -1,0 +1,138 @@
+/* =====================================================================
+   こどもモード — トークンの上書き＋こども専用パーツ
+   9歳が使う前提: 大きい / 丸い / 明るい / タップ領域 56px 以上
+   ===================================================================== */
+
+[data-mode="kid"] {
+  --fs-xs: 12px; --fs-sm: 15px; --fs-md: 18px;
+  --fs-lg: 22px; --fs-xl: 28px; --fs-2xl: 40px;
+
+  --r-sm: 12px; --r-md: 20px; --r-lg: 28px;
+
+  --tap: 56px;
+  --nav-h: 72px;
+  --header-h: 60px;
+
+  --bg: #fff7fb;
+  --surface: #ffffff;
+  --surface-2: #fdf2f7;
+  --text: #3a2b36;
+  --text-sub: #8a7684;
+  --border: #f7e2ec;
+  --accent: #ff6fa5;
+  --accent-ink: #ffffff;
+  --accent-soft: #ffe3ee;
+}
+
+/* 背景にやわらかいグラデを敷く */
+[data-mode="kid"] body {
+  background:
+    radial-gradient(1100px 420px at 12% -8%, #fff0d9 0%, transparent 60%),
+    radial-gradient(900px 380px at 92% 4%, #e8f3ff 0%, transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+[data-mode="kid"] .card { box-shadow: 0 3px 0 var(--border), var(--shadow-1); }
+[data-mode="kid"] .bottom__item .ico { font-size: 26px; }
+[data-mode="kid"] .bottom__item { font-size: 12px; }
+
+/* =====================================================================
+   今日のミッション（ホーム上部）
+   ===================================================================== */
+.mission {
+  display: flex; align-items: center; gap: var(--sp-4);
+  background: linear-gradient(135deg, #ffd9e8, #ffe9d0);
+  border: none; border-radius: var(--r-lg);
+  padding: var(--sp-5) var(--sp-4);
+}
+.mission__text { flex: 1; }
+.mission__label { font-size: var(--fs-sm); font-weight: 700; color: #a2596f; }
+.mission__count { font-size: var(--fs-2xl); font-weight: 900; line-height: 1.1; }
+.mission__note { font-size: var(--fs-sm); color: #8a6070; }
+
+/* =====================================================================
+   練習メニューの大きなトグルカード
+   ・checkbox ではなくカード全体が押せる（小さい的を狙わせない）
+   ===================================================================== */
+.menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--sp-3); }
+.menu-card {
+  position: relative;
+  min-height: 132px; padding: var(--sp-4) var(--sp-3);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-1);
+  background: var(--surface);
+  border: 3px solid var(--border); border-radius: var(--r-lg);
+  text-align: center;
+  transition: transform .12s var(--ease), border-color .15s, background .15s;
+}
+.menu-card:active { transform: scale(.95); }
+.menu-card__ico  { font-size: 40px; line-height: 1; }
+.menu-card__name { font-size: var(--fs-sm); font-weight: 800; }
+.menu-card__time { font-size: var(--fs-xs); color: var(--text-sub); font-weight: 700; }
+.menu-card[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.menu-card[aria-pressed="true"] .menu-card__time { color: var(--accent); }
+/* 状態は色だけに頼らない: チェックマークも出す */
+.menu-card__check {
+  position: absolute; top: 8px; right: 8px;
+  width: 28px; height: 28px; border-radius: 50%;
+  display: grid; place-content: center;
+  background: var(--accent); color: #fff; font-size: 16px; font-weight: 900;
+}
+.menu-card[aria-pressed="false"] .menu-card__check { display: none; }
+
+/* =====================================================================
+   スタンプ帳（週/月のカレンダー）
+   ===================================================================== */
+.stamp-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--sp-2); text-align: center; }
+.stamp-day__dow { font-size: var(--fs-xs); color: var(--text-sub); font-weight: 700; margin-bottom: 4px; }
+.stamp-day__mark {
+  aspect-ratio: 1; display: grid; place-content: center;
+  border-radius: 50%; font-size: 22px;
+  background: var(--surface-2); border: 2px dashed var(--border);
+}
+.stamp-day--done .stamp-day__mark {
+  background: linear-gradient(135deg, #ffd36e, #ff8fb1);
+  border: 2px solid transparent;
+}
+.stamp-day--today .stamp-day__mark { box-shadow: 0 0 0 3px var(--accent); }
+
+/* =====================================================================
+   応援メッセージ / ごほうび
+   ===================================================================== */
+.cheer {
+  background: linear-gradient(135deg, #fff3d6, #ffe2ec);
+  border-radius: var(--r-lg); padding: var(--sp-4);
+}
+.cheer__from { font-size: var(--fs-sm); font-weight: 800; color: #a2596f; margin-bottom: var(--sp-1); }
+.cheer__body { font-size: var(--fs-md); font-weight: 700; }
+.cheer__empty { color: var(--text-sub); font-weight: 600; }
+
+.reward-track { display: flex; flex-wrap: wrap; gap: 6px; font-size: 22px; margin-top: var(--sp-2); }
+.reward-track .off { opacity: .28; filter: grayscale(1); }
+
+/* =====================================================================
+   もくひょう（山のぼり表示）
+   ===================================================================== */
+.mountain { position: relative; padding: var(--sp-4) 0; }
+.mountain__step {
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3); border-radius: var(--r-md);
+  background: var(--surface); border: 2px solid var(--border);
+  margin-bottom: var(--sp-3);
+}
+.mountain__step--done { border-color: var(--ok); background: #f2fbf6; }
+.mountain__step--now  { border-color: var(--accent); background: var(--accent-soft); }
+.mountain__ico { font-size: 32px; }
+.mountain__body { flex: 1; }
+.mountain__title { font-weight: 800; font-size: var(--fs-sm); }
+.mountain__meta  { font-size: var(--fs-xs); color: var(--text-sub); font-weight: 700; }
+.mountain__here {
+  font-size: var(--fs-xs); font-weight: 900; color: var(--accent-ink);
+  background: var(--accent); padding: 2px 8px; border-radius: var(--r-pill);
+}
+
+/* こどもモードでは削除系UIを出さない（誤操作でデータを失わせない） */
+[data-mode="kid"] .parent-only { display: none !important; }
