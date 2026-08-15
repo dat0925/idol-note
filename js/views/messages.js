@@ -34,6 +34,8 @@ async function load() {
       .filter((c) => !c.is_read && c.author_user_id !== Store.get('user')?.id)
       .map((c) => c.id);
     if (unread.length) db.markCheersRead(unread).catch(() => {});
+    // ナビのバッジを即座に消す（既読にした直後なので0でよい）
+    Store.set({ unreadCheers: 0 });
   } catch (e) {
     toast(e.message || '読み込みに失敗しました', 'error');
   } finally {
@@ -160,7 +162,9 @@ export default {
       render();
       if (row.author_user_id !== Store.get('user')?.id) {
         vibrate([20, 40, 20]);
-        toast('あたらしいメッセージがとどきました 💌', 'ok');
+        toast('あたらしいメッセージがとどきました', 'ok');
+        // この画面を開いている＝すぐ読むので、バッジは増やさず既読にする
+        db.markCheersRead([row.id]).catch(() => {});
       }
     });
   },

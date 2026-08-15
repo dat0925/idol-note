@@ -9,7 +9,7 @@
    ★リリースのたびに CACHE の版数を上げること（デプロイ手順に含める）。
    ===================================================================== */
 
-const CACHE = 'idol-v10';
+const CACHE = 'idol-v12';
 
 const SHELL = [
   './',
@@ -35,6 +35,7 @@ const SHELL = [
   './js/components/nav.js',
   './js/components/pin-modal.js',
   './js/components/stage.js',
+  './js/components/hero-picker.js',
   './js/views/auth-view.js',
   './js/views/home.js',
   './js/views/practice.js',

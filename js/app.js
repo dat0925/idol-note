@@ -10,10 +10,13 @@ import * as Store from './store.js';
 import * as Auth from './auth.js';
 import * as Pin from './pin.js';
 import * as LS from './storage.js';
+import * as db from './db.js';
 import * as Router from './router.js';
 import * as Nav from './components/nav.js';
 import { requestUnlock, setupPin } from './components/pin-modal.js';
 import * as Stage from './components/stage.js';
+import { openHeroPicker } from './components/hero-picker.js';
+import { icon } from './icons.js';
 import { toast, $ } from './ui.js';
 import { flushOutbox } from './sync.js';
 
@@ -28,6 +31,13 @@ function initServiceWorker() {
     // 起動時と6時間ごとに更新を確認する
     reg.update().catch(() => {});
     setInterval(() => reg.update().catch(() => {}), 6 * 60 * 60 * 1000);
+
+    // ★アプリに戻ってくるたびにも確認する。
+    //   ホーム画面から開くPWAは何日も起動しっぱなしになり、
+    //   6時間タイマーだけだと修正が娘の端末に届かない。
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) reg.update().catch(() => {});
+    });
 
     reg.addEventListener('updatefound', () => {
       const sw = reg.installing;
@@ -157,6 +167,13 @@ async function boot() {
     }
   }
 
+  // ナビの未読バッジ。ホーム以外の画面から入っても最初から数が出るようにする
+  if (status === 'ok') {
+    db.countUnreadCheers()
+      .then((n) => Store.set({ unreadCheers: n }))
+      .catch(() => { /* バッジが出ないだけなので黙って諦める */ });
+  }
+
   // 溜まっていたオフライン書き込みを送る
   flushOutbox().catch(() => {});
 }
@@ -167,6 +184,12 @@ async function boot() {
 function wireGlobals() {
   $('#modeToggle')?.addEventListener('click', toggleMode);
 
+  const heroBtn = $('#heroPick');
+  if (heroBtn) {
+    heroBtn.innerHTML = icon('image', { size: 20 });
+    heroBtn.addEventListener('click', () => openHeroPicker());
+  }
+
   $('#userMenu')?.addEventListener('click', () => {
     // おとなモードなら設定画面、こどもモードならログアウト確認だけ
     if (Store.get('mode') === 'adult') Router.navigate('/settings');
@@ -176,7 +199,7 @@ function wireGlobals() {
   document.querySelector('.hdr__brand')?.addEventListener('click', () => Router.navigate('/home'));
 
   // ナビ/ヘッダの再描画が必要な状態が変わったとき
-  Store.subscribe(['route', 'mode', 'role', 'streak', 'member', 'members'], () => Nav.renderAll());
+  Store.subscribe(['route', 'mode', 'role', 'streak', 'member', 'members', 'unreadCheers'], () => Nav.renderAll());
 
   // PIN が施錠されたら、機密画面にいる場合はホームへ戻す
   window.addEventListener('idol:locked', () => {
@@ -202,6 +225,23 @@ function wireGlobals() {
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden && navigator.onLine) flushOutbox().catch(() => {});
   });
+
+  // ★横はみ出しの見張り（開発時のみ）。
+  //   html に overflow-x: clip を敷いたので画面は壊れなくなったが、
+  //   それは「隠れる」だけで直ったわけではない。
+  //   clip されない .shell の実幅を見て、原因がある間は気づけるようにする。
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    const watchOverflow = () => {
+      const shell = $('#shell');
+      if (!shell || shell.hidden) return;
+      const w = Math.round(shell.getBoundingClientRect().width);
+      if (w > window.innerWidth + 1) {
+        console.warn(`[layout] 横にはみ出しています: shell ${w}px > 画面 ${window.innerWidth}px`);
+      }
+    };
+    window.addEventListener('resize', watchOverflow);
+    Store.subscribe(['route', 'mode', 'member'], () => setTimeout(watchOverflow, 0));
+  }
 
   // 想定外のエラーを握りつぶさず気づけるようにする
   window.addEventListener('unhandledrejection', (ev) => {

@@ -374,6 +374,22 @@ export async function markCheersRead(ids) {
   guard(error);
 }
 
+/**
+ * 自分あての未読件数。ナビのバッジに出す。
+ * 「自分が書いたもの」は数えない（自分の投稿で自分に通知が付くのは無意味）。
+ * head: true で件数だけ取り、本文は転送しない（起動のたびに叩くので軽くする）。
+ */
+export async function countUnreadCheers() {
+  const { count, error } = await supabase
+    .from('idol_cheer_messages')
+    .select('id', { count: 'exact', head: true })
+    .eq('family_id', fam())
+    .eq('is_read', false)
+    .neq('author_user_id', uid());
+  guard(error);
+  return count || 0;
+}
+
 export async function deleteCheer(id) {
   const { error } = await supabase.from('idol_cheer_messages').delete().eq('id', id);
   guard(error);

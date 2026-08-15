@@ -18,6 +18,9 @@ const KID_NAV = [
   { path: '/practice', icon: 'pencil', label: '練習' },
   { path: '/goals',    icon: 'target', label: '目標' },
   { path: '/album',    icon: 'camera', label: 'アルバム' },
+  // ★応援は「場所」なのでナビに置く。未読バッジが付くのもここ。
+  //   これで5つ。390px の画面ではこれが上限で、6つ目を足すとラベルが潰れる。
+  { path: '/messages', icon: 'mail',   label: '応援', badge: 'unreadCheers' },
 ];
 
 const ADULT_NAV = [
@@ -25,7 +28,7 @@ const ADULT_NAV = [
   { path: '/practice',  icon: 'pencil',   label: '練習記録' },
   { path: '/goals',     icon: 'target',   label: '目標' },
   { path: '/album',     icon: 'camera',   label: '成長の記録' },
-  { path: '/messages',  icon: 'mail',     label: '応援' },
+  { path: '/messages',  icon: 'mail',     label: '応援', badge: 'unreadCheers' },
   { sep: true },
   { path: '/auditions', icon: 'film',     label: 'オーディション', secure: true },
   { path: '/calendar',  icon: 'calendar', label: 'カレンダー',     secure: true },
@@ -39,12 +42,19 @@ export function renderBottom(root) {
   const route = Store.get('route');
   const items = mode === 'kid' ? KID_NAV : ADULT_NAV.filter((i) => !i.sep).slice(0, 5);
 
-  root.innerHTML = items.map((i) => `
+  root.innerHTML = items.map((i) => {
+    const n = i.badge ? (Store.get(i.badge) || 0) : 0;
+    return `
     <a class="bottom__item" href="#${i.path}"
        ${route === i.path ? 'aria-current="page"' : ''}>
-      <span class="ico">${icon(i.icon)}</span>
+      <span class="ico">
+        ${icon(i.icon)}
+        ${n > 0 ? `<span class="nav-badge">${n > 9 ? '9+' : n}</span>` : ''}
+      </span>
       <span>${esc(i.label)}</span>
-    </a>`).join('');
+      ${n > 0 ? `<span class="sr-only">未読${n}件</span>` : ''}
+    </a>`;
+  }).join('');
 }
 
 /** サイドバー（PC + おとなモードのみ表示される） */
@@ -54,7 +64,10 @@ export function renderSide(root) {
     if (i.sep) return '<div class="side__sep"></div>';
     return `<a class="side__item" href="#${i.path}"
               ${route === i.path ? 'aria-current="page"' : ''}>
-      <span class="ico">${icon(i.icon, { size: 20 })}</span>
+      <span class="ico">
+        ${icon(i.icon, { size: 20 })}
+        ${(i.badge && Store.get(i.badge)) ? `<span class="nav-badge">${Store.get(i.badge) > 9 ? '9+' : Store.get(i.badge)}</span>` : ''}
+      </span>
       <span>${esc(i.label)}</span>
       ${i.secure ? `<span class="spacer"></span><span class="ico ico--dim">${icon('lock', { size: 14 })}</span>` : ''}
     </a>`;
@@ -91,6 +104,10 @@ export function renderHeader() {
     toggle.setAttribute('aria-label',
       mode === 'kid' ? 'おとなモードに切り替える' : 'こどもモードに切り替える');
   }
+
+  // 背景えらびはこどもモードだけ。おとなモードは作業する画面なので出さない
+  const heroBtn = document.getElementById('heroPick');
+  if (heroBtn) heroBtn.hidden = mode !== 'kid' || !member;
 
   const avatar = document.getElementById('userMenu');
   if (avatar) {

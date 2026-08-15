@@ -48,8 +48,20 @@
 /* ── リセット ───────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  /* ★横はみ出しの最後の網。
+     文字列1つ（長いニックネーム等）が縮まないせいでグリッドの列が広がり、
+     width:100% のカードが全部つられて画面外へ出る事故が実際に起きた。
+     hidden ではなく clip を使う理由: hidden はスクロールコンテナを作ってしまい、
+     position: sticky なヘッダの挙動や慣性スクロールに副作用が出るため。
+     ※これは保険であって原因ではない。原因側（min-width: 0）も必ず直すこと。 */
+  overflow-x: clip;
+}
 body {
+  /* 長い英数字やURLが1語のまま伸びて横幅を押し広げるのを防ぐ。
+     日本語の通常の折り返しには影響しない */
+  overflow-wrap: break-word;
   font-family: var(--font);
   font-size: var(--fs-md);
   line-height: var(--lh);
@@ -104,7 +116,11 @@ img { max-width: 100%; display: block; }
   grid-template-areas: "hdr" "main" "bottom";
 }
 .side { display: none; grid-area: side; }
+/* ★グリッド/フレックスの子は既定が min-width: auto で、
+   中身の最小幅より縮まない。これが横はみ出しの典型的な原因になる。 */
+.shell > * { min-width: 0; }
 .main {
+  min-width: 0;
   grid-area: main;
   padding: var(--sp-4);
   padding-bottom: calc(var(--nav-h) + var(--sp-6) + env(safe-area-inset-bottom));
@@ -164,6 +180,37 @@ img { max-width: 100%; display: block; }
   background: var(--accent-soft); color: var(--accent);
   font-size: var(--fs-sm); font-weight: 700; white-space: nowrap;
 }
+/* ヘッダのアイコンボタン（背景えらび）。
+   アバターと同じ的の大きさに揃えて、押し分けやすくする */
+.hdr__icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--surface-2); color: var(--text-sub);
+  display: grid; place-content: center;
+}
+.hdr__icon:hover { color: var(--accent); }
+
+/* ナビの未読バッジ。
+   ★色だけに頼らず数字も出す（色覚に依存させない）。
+     0件のときは要素ごと出さない。 */
+.nav-badge {
+  position: absolute; top: -6px; right: -10px;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 9px;
+  background: var(--accent); color: var(--accent-ink);
+  font-size: 11px; font-weight: 800; line-height: 18px;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+/* バッジを絶対配置するための基準。アイコン自体の大きさは変えない */
+.bottom__item .ico, .side__item .ico { position: relative; }
+
+/* 読み上げ専用。目には見えないが、未読件数を音声で伝える */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
 .hdr__avatar {
   width: 36px; height: 36px; border-radius: 50%;
   background: var(--surface-2); font-size: var(--fs-md);

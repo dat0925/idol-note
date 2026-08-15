@@ -7,7 +7,7 @@ import * as db from './../db.js';
 import * as Store from './../store.js';
 import * as Stage from './../components/stage.js';
 import { icon } from './../icons.js';
-import { esc, toast, progressRing, progressBar, emptyState, skeleton, vibrate, modal } from './../ui.js';
+import { esc, toast, progressRing, progressBar, emptyState, skeleton } from './../ui.js';
 import {
   jstToday, shortDate, minutesText, addDays, deadlineText, deadlineLevel,
   BADGES, AUDITION_STATUS,
@@ -15,7 +15,6 @@ import {
 
 let root = null;
 let unsub = [];
-let onPick = null;
 let state = { loading: true };
 
 async function load() {
@@ -43,6 +42,9 @@ async function load() {
       auditions: [],
     };
     Store.set({ streak });
+    // ナビの未読バッジ用。ホームを開くたびに最新化する
+    Store.set({ unreadCheers: (cheers || []).filter(
+      (c) => !c.is_read && c.author_user_id !== Store.get('user')?.id).length });
 
     // ごほうび・オーディションは必要なほうだけ取る
     state.rewards = await db.listRewards().catch(() => []);
@@ -95,65 +97,7 @@ function kidView() {
     ${cheerCard()}
     ${rewardCard()}
     ${badgeCard()}
-    ${heroPickerButton()}
   `;
-}
-
-/**
- * 背景イラストを選ぶ入口。
- *
- * ★一覧をホームに並べない。
- *   スマホだと選択肢がカードで画面を埋めてしまい、
- *   肝心の背景がほとんど見えなくなる（本末転倒）。
- *   ボタン1つに畳んで、選ぶときだけモーダルを開く。
- */
-function heroPickerButton() {
-  return `<div style="margin-top:var(--sp-3);text-align:center">
-    <button type="button" class="btn btn--soft btn--sm" data-act="pick-hero">
-      ${icon('image', { size: 18 })} 背景を選ぶ
-    </button>
-  </div>`;
-}
-
-/**
- * 背景えらびのモーダル。
- * 横スクロール（スマホではスワイプ）で並べ、選んだら閉じる。
- * 「自分の画面」だと思えることがやる気につながるので、親ではなく本人に選ばせる。
- */
-function openHeroPicker() {
-  const now = Stage.currentHero();
-  const m = modal(`
-    <p class="modal__title">${icon('image', { size: 20 })} 背景を選ぶ</p>
-    <p style="color:var(--text-sub);font-size:var(--fs-sm);margin-bottom:var(--sp-3)">
-      横にスワイプすると、ほかの絵が出てきます。
-    </p>
-    <div class="hero-pick" role="radiogroup" aria-label="背景のイラスト">
-      ${Stage.HEROES.map((id) => `
-        <button type="button" class="hero-pick__item${id === now ? ' is-on' : ''}"
-                role="radio" aria-checked="${id === now}"
-                data-hero="${id}" aria-label="イラスト${id}">
-          <img src="${esc(Stage.heroThumb(id))}" alt="" loading="lazy" decoding="async">
-        </button>`).join('')}
-    </div>
-    <div class="modal__actions">
-      <button type="button" class="btn btn--outline" data-act="close">閉じる</button>
-    </div>
-  `);
-
-  // 今えらんでいる絵が画面外にあると「1枚しかない」と誤解されるので寄せておく
-  m.box.querySelector('.hero-pick__item.is-on')
-    ?.scrollIntoView({ block: 'nearest', inline: 'center' });
-
-  m.box.addEventListener('click', (ev) => {
-    if (ev.target.closest('[data-act="close"]')) { m.close(); return; }
-    const btn = ev.target.closest('[data-hero]');
-    if (!btn) return;
-    Stage.setHero(Number(btn.dataset.hero));
-    vibrate(10);
-    // 選んだら閉じる。背景が見たくて開いているので、居座らせない
-    m.close();
-    render();
-  });
 }
 
 function cheerCard() {
@@ -357,20 +301,12 @@ export default {
     root = el;
     state = { loading: true };
 
-    // 背景えらびの入口。委譲にしているので再描画しても付け直さなくてよい
-    onPick = (ev) => {
-      if (ev.target.closest('[data-act="pick-hero"]')) openHeroPicker();
-    };
-    root.addEventListener('click', onPick);
-
     unsub.push(Store.subscribe('mode', () => load()));
     await load();
   },
   destroy() {
     unsub.forEach((f) => f());
     unsub = [];
-    if (onPick) root?.removeEventListener('click', onPick);
-    onPick = null;
     root = null;
   },
 };
