@@ -22,7 +22,7 @@ import * as LS from './../storage.js';
 // 背景イラストの枚数。娘が気分で選べるようにしてある。
 // ファイルは tools/build-hero.py が書き出す（assets/README.md 参照）。
 // ★イラストを増やしたら、ここの数だけを直す。
-const HERO_COUNT = 3;
+const HERO_COUNT = 7;
 export const HEROES = Array.from({ length: HERO_COUNT }, (_, i) => i + 1);
 const heroSrc = (id) => `./assets/idol-hero-${id}.webp`;
 export const heroThumb = (id) => `./assets/idol-hero-${id}-thumb.webp`;

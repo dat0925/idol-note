@@ -18,5 +18,9 @@ supabase/.temp/
 # 背景イラストの元データ（1枚2〜3MB）。
 # publicリポジトリなのでコミットすると GitHub Pages から誰でも落とせてしまうし、
 # 配信に使うのは tools/build-hero.py が書き出した assets/*.webp のほう。
+# ★綴りゆれ（idle / idole / idol）をまとめて弾く。
+#   idoleimage-p*.png を一度うっかりコミットしたことがある。
 idleimage*.png
+idoleimage*.png
+idolimage*.png
 hero-src*.png

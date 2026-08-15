@@ -9,7 +9,7 @@
    ★リリースのたびに CACHE の版数を上げること（デプロイ手順に含める）。
    ===================================================================== */
 
-const CACHE = 'idol-v7';
+const CACHE = 'idol-v8';
 
 const SHELL = [
   './',
@@ -47,14 +47,12 @@ const SHELL = [
   './js/views/settings.js',
   './icon-192.png',
   './icon-512.png',
-  // 背景イラスト3種＋えらぶボタン用サムネ。
-  // install は Promise.allSettled なので、1つ欠けても他は正常にキャッシュされる。
+  // 背景イラスト。★本体を全部先読みしない。
+  //   7枚あり、全部入れると install だけで 1.4MB になる。娘は4Gで開く。
+  //   ここで入れるのは「選ぶ画面に必ず要るサムネ全部」と「既定の1枚」だけ。
+  //   ほかの本体は、選んだ時に fetch ハンドラ側でキャッシュされる。
   './assets/idol-hero-1.webp',
-  './assets/idol-hero-2.webp',
-  './assets/idol-hero-3.webp',
-  './assets/idol-hero-1-thumb.webp',
-  './assets/idol-hero-2-thumb.webp',
-  './assets/idol-hero-3-thumb.webp',
+  ...Array.from({ length: 7 }, (_, i) => `./assets/idol-hero-${i + 1}-thumb.webp`),
 ];
 
 self.addEventListener('install', (ev) => {
