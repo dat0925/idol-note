@@ -9,7 +9,7 @@
    ★リリースのたびに CACHE の版数を上げること（デプロイ手順に含める）。
    ===================================================================== */
 
-const CACHE = 'idol-v8';
+const CACHE = 'idol-v9';
 
 const SHELL = [
   './',
@@ -31,6 +31,7 @@ const SHELL = [
   './js/photos.js',
   './js/ui.js',
   './js/format.js',
+  './js/icons.js',
   './js/components/nav.js',
   './js/components/pin-modal.js',
   './js/components/stage.js',
@@ -47,6 +48,9 @@ const SHELL = [
   './js/views/settings.js',
   './icon-192.png',
   './icon-512.png',
+  './icon-maskable-512.png',
+  './apple-touch-icon.png',
+  './assets/logo-96.webp',
   // 背景イラスト。★本体を全部先読みしない。
   //   7枚あり、全部入れると install だけで 1.4MB になる。娘は4Gで開く。
   //   ここで入れるのは「選ぶ画面に必ず要るサムネ全部」と「既定の1枚」だけ。

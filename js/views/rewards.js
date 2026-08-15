@@ -4,6 +4,7 @@
 //   ポイント残高は v_idol_points から導出（残高カラムを持たない）。
 // =====================================================================
 import * as db from './../db.js';
+import { icon } from './../icons.js';
 import * as Store from './../store.js';
 import {
   esc, toast, progressBar, emptyState, skeleton, modal, confirmDialog, confetti,
@@ -41,7 +42,7 @@ function render() {
 
   root.innerHTML = `
     <div class="page-head">
-      <h1>🏆 ごほうび帳</h1>
+      <h1>${icon('gift', { size: 22 })} ごほうび帳</h1>
       ${isParent ? '<button class="btn btn--primary btn--sm" data-act="new">＋ ごほうびを追加</button>' : ''}
     </div>
 
@@ -93,8 +94,8 @@ function card(r, balance, isParent) {
         ? `<button class="btn btn--primary btn--sm" data-act="redeem" data-id="${esc(r.id)}">
              ✅ 承認する</button>` : ''}
       ${isParent
-        ? `<button class="btn btn--ghost btn--sm" data-act="edit" data-id="${esc(r.id)}">✏️</button>
-           <button class="btn btn--ghost btn--sm" data-act="delete" data-id="${esc(r.id)}">🗑</button>` : ''}
+        ? `<button class="btn btn--ghost btn--sm" data-act="edit" data-id="${esc(r.id)}" aria-label="編集">${icon('pencil', { size: 18 })}</button>
+           <button class="btn btn--ghost btn--sm" data-act="delete" data-id="${esc(r.id)}" aria-label="削除">${icon('trash', { size: 18 })}</button>` : ''}
     </div>
   </div>`;
 }

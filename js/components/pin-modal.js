@@ -5,6 +5,7 @@
 // せり上がり、モーダルが隠れる。72px 角のキーなら誤タップも減る。
 // =====================================================================
 import { modal, esc, vibrate } from './../ui.js';
+import { icon } from './../icons.js';
 import * as Pin from './../pin.js';
 import * as Auth from './../auth.js';
 import * as Store from './../store.js';
@@ -39,7 +40,7 @@ function pinShell(title, subtitle, onComplete, footerHTML = '') {
     const finish = (v) => { if (settled) return; settled = true; resolve(v); };
 
     const m = modal(`
-      <p class="modal__title">🔒 ${esc(title)}</p>
+      <p class="modal__title">${icon('lock', { size: 20 })} ${esc(title)}</p>
       <p style="text-align:center;color:var(--text-sub);font-size:var(--fs-sm)">${esc(subtitle)}</p>
       <div data-dots>${dotsHTML(0)}</div>
       <p class="pin-error" data-error></p>

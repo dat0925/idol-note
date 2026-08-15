@@ -124,7 +124,8 @@ img { max-width: 100%; display: block; }
   position: sticky; top: 0; z-index: 20;
 }
 .hdr__brand { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) 0; }
-.hdr__logo { font-size: var(--fs-xl); }
+/* ロゴ画像。角丸は画像側に焼き込んであるので、ここでは大きさだけ決める */
+.hdr__logo { width: 32px; height: 32px; border-radius: 8px; display: block; }
 .hdr__title { font-weight: 700; font-size: var(--fs-lg); white-space: nowrap; }
 .hdr__right { display: flex; align-items: center; gap: var(--sp-2); }
 .hdr__mode {
@@ -163,7 +164,16 @@ img { max-width: 100%; display: block; }
   text-decoration: none;
   transition: color .15s var(--ease);
 }
-.bottom__item .ico { font-size: 22px; line-height: 1; }
+/* アイコンは線画SVG（js/icons.js）。currentColor を継ぐので、
+   選択中の色替えは文字色を変えるだけで済む */
+/* inline-block にしている理由:
+   .btn は inline-flex なので block でも並ぶが、card__title のような
+   ただの <p> の中に置くと block では改行してしまう。
+   inline-block + vertical-align なら、どちらでも文字の高さに揃う。 */
+.ico { display: inline-flex; line-height: 0; }
+.ico--dim { opacity: .45; }
+.ico-svg { display: inline-block; vertical-align: -.18em; flex: none; }
+.bottom__item .ico { line-height: 0; }
 .bottom__item[aria-current="page"] { color: var(--accent); }
 
 .side { padding: var(--sp-4) var(--sp-3); border-right: 1px solid var(--border); background: var(--surface); }
@@ -199,7 +209,11 @@ img { max-width: 100%; display: block; }
   box-shadow: var(--shadow-1);
 }
 .card + .card { margin-top: var(--sp-3); }
-.card__title { font-weight: 700; font-size: var(--fs-md); margin-bottom: var(--sp-3); }
+/* アイコン付きの見出しをきれいに揃えるため flex にしている */
+.card__title {
+  display: flex; align-items: center; gap: .45em;
+  font-weight: 700; font-size: var(--fs-md); margin-bottom: var(--sp-3);
+}
 .grid { display: grid; gap: var(--sp-3); }
 .grid--2 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .grid--3 { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
@@ -281,7 +295,11 @@ img { max-width: 100%; display: block; }
   text-align: center; padding: var(--sp-7) var(--sp-4); color: var(--text-sub);
 }
 .empty__ico { font-size: 44px; margin-bottom: var(--sp-2); }
-.empty__msg { font-size: var(--fs-md); margin-bottom: var(--sp-4); }
+/* pre-line にしている理由:
+   emptyState() の message は esc() を通すので <br> を書いても文字として出てしまう
+   （実際「まだなにもありません。<br>」と画面に出た）。
+   改行したいときは message に素の改行を入れる。 */
+.empty__msg { font-size: var(--fs-md); margin-bottom: var(--sp-4); white-space: pre-line; }
 
 /* ── スケルトン ── */
 .skeleton {

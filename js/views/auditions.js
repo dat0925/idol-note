@@ -7,6 +7,7 @@
 //   idol_auditions.shared_result に転記する。親メモと費用は転記されない。
 // =====================================================================
 import * as db from './../db.js';
+import { icon } from './../icons.js';
 import * as Store from './../store.js';
 import { esc, toast, emptyState, skeleton, modal, confirmDialog } from './../ui.js';
 import {
@@ -129,8 +130,8 @@ function detailPanel() {
     <div class="row row--between">
       <p class="card__title" style="margin:0">${esc(a.title)}</p>
       <div class="row">
-        <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${esc(a.id)}">✏️</button>
-        <button class="btn btn--ghost btn--sm" data-act="delete" data-id="${esc(a.id)}">🗑</button>
+        <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${esc(a.id)}" aria-label="編集">${icon('pencil', { size: 18 })}</button>
+        <button class="btn btn--ghost btn--sm" data-act="delete" data-id="${esc(a.id)}" aria-label="削除">${icon('trash', { size: 18 })}</button>
       </div>
     </div>
     <dl style="display:grid;grid-template-columns:auto 1fr;gap:4px var(--sp-3);font-size:var(--fs-sm);margin:var(--sp-3) 0">
@@ -215,7 +216,7 @@ function checklist(title, kind, tasks, auditionId) {
           <span style="flex:1;${t.done ? 'text-decoration:line-through;color:var(--text-sub)' : ''}">
             ${esc(t.title)}${t.due_date ? ` <small class="tag">${esc(t.due_date)}</small>` : ''}
           </span>
-          <button class="btn btn--ghost btn--sm" data-del-task="${esc(t.id)}">🗑</button>
+          <button class="btn btn--ghost btn--sm" data-del-task="${esc(t.id)}" aria-label="削除">${icon('trash', { size: 18 })}</button>
         </li>`).join('')}</ul>`}
   </div>`;
 }
@@ -232,7 +233,7 @@ function lessonTable() {
             : l.attended ? '<span class="tag tag--ok">出席</span>'
             : '<span class="tag tag--danger">欠席</span>'}</td>
       <td style="white-space:normal">${esc((l.memo || '').slice(0, 40))}</td>
-      <td><button class="btn btn--ghost btn--sm" data-act="edit-lesson" data-id="${esc(l.id)}">✏️</button></td>
+      <td><button class="btn btn--ghost btn--sm" data-act="edit-lesson" data-id="${esc(l.id)}" aria-label="編集">${icon('pencil', { size: 18 })}</button></td>
     </tr>`).join('')}</tbody>
   </table></div>`;
 }

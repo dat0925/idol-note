@@ -7,6 +7,7 @@
 // ★ここで読んだ値は localStorage に保存しない（メモリのみ）。
 // =====================================================================
 import * as db from './../db.js';
+import { icon } from './../icons.js';
 import * as Store from './../store.js';
 import { esc, toast, skeleton, emptyState, confirmDialog, modal } from './../ui.js';
 import { jstToday, shortDate } from './../format.js';
@@ -77,8 +78,8 @@ function render() {
               <td><input type="checkbox" data-visible="${esc(r.id)}" ${r.visible_to_child ? 'checked' : ''}></td>
               <td style="white-space:normal">${esc((r.note || '').slice(0, 30))}</td>
               <td>
-                <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${esc(r.id)}">✏️</button>
-                <button class="btn btn--ghost btn--sm" data-act="delete" data-id="${esc(r.id)}">🗑</button>
+                <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${esc(r.id)}" aria-label="編集">${icon('pencil', { size: 18 })}</button>
+                <button class="btn btn--ghost btn--sm" data-act="delete" data-id="${esc(r.id)}" aria-label="削除">${icon('trash', { size: 18 })}</button>
               </td>
             </tr>`).join('')}</tbody>
           </table></div>`}

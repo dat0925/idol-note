@@ -3,6 +3,7 @@
 //   家族と招待コード / 練習メニュー編集 / PIN / データ書き出し / ログアウト
 // =====================================================================
 import * as db from './../db.js';
+import { icon } from './../icons.js';
 import * as Auth from './../auth.js';
 import * as Pin from './../pin.js';
 import * as Store from './../store.js';
@@ -47,7 +48,7 @@ function render() {
     <div class="page-head"><h1>設定</h1></div>
 
     <div class="card">
-      <p class="card__title">👨‍👩‍👧 家族</p>
+      <p class="card__title">${icon('users', { size: 20 })} 家族</p>
       <p style="margin-bottom:var(--sp-3)"><b>${esc(family?.name || '')}</b></p>
       <ul>${members.map((m) => `<li class="row row--between"
             style="padding:var(--sp-2) 0;border-bottom:1px solid var(--border)">
@@ -71,7 +72,7 @@ function render() {
 
     <div class="card">
       <div class="row row--between">
-        <p class="card__title" style="margin:0">✏️ 練習メニュー</p>
+        <p class="card__title" style="margin:0">${icon('pencil', { size: 20 })} 練習メニュー</p>
         <button class="btn btn--primary btn--sm" data-act="new-menu">＋ 追加</button>
       </div>
       ${state.menus.length === 0
@@ -83,14 +84,14 @@ function render() {
                 ${m.default_minutes}分 / ${m.points}pt
               </small></span>
             <span>
-              <button class="btn btn--ghost btn--sm" data-act="edit-menu" data-id="${esc(m.id)}">✏️</button>
-              <button class="btn btn--ghost btn--sm" data-act="delete-menu" data-id="${esc(m.id)}">🗑</button>
+              <button class="btn btn--ghost btn--sm" data-act="edit-menu" data-id="${esc(m.id)}" aria-label="編集">${icon('pencil', { size: 18 })}</button>
+              <button class="btn btn--ghost btn--sm" data-act="delete-menu" data-id="${esc(m.id)}" aria-label="削除">${icon('trash', { size: 18 })}</button>
             </span>
           </li>`).join('')}</ul>`}
     </div>
 
     <div class="card">
-      <p class="card__title">🔒 安心番号（PIN）</p>
+      <p class="card__title">${icon('lock', { size: 20 })} 安心番号（PIN）</p>
       <p style="color:var(--text-sub);font-size:var(--fs-sm);margin-bottom:var(--sp-3)">
         おとなモードに入るときの4桁の番号です。${state.hasPin ? '設定済み。' : 'まだ設定されていません。'}<br>
         これは「端末を渡したときの目隠し」です。オーディションの結果や体重は、
@@ -104,7 +105,7 @@ function render() {
     </div>
 
     <div class="card">
-      <p class="card__title">💾 データ</p>
+      <p class="card__title">${icon('database', { size: 20 })} データ</p>
       <p style="color:var(--text-sub);font-size:var(--fs-sm);margin-bottom:var(--sp-3)">
         未送信の変更：${pending}件${pending ? '（オンラインになると自動で送られます）' : ''}
       </p>

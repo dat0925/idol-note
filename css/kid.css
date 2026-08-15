@@ -44,14 +44,45 @@
   background: rgba(255, 255, 255, .94);
 }
 @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-  [data-mode="kid"] .card,
-  [data-mode="kid"] .cheer {
+  [data-mode="kid"] .card {
     background: rgba(255, 255, 255, .74);
     -webkit-backdrop-filter: blur(12px) saturate(1.15);
             backdrop-filter: blur(12px) saturate(1.15);
   }
+
+  /* 応援カードは元の暖色グラデを保ったまま透かす
+     （白で塗りつぶすと、ここだけ冷たくなって浮く） */
+  [data-mode="kid"] .cheer {
+    background:
+      linear-gradient(135deg, rgba(255, 243, 214, .80), rgba(255, 226, 236, .80));
+    -webkit-backdrop-filter: blur(12px) saturate(1.15);
+            backdrop-filter: blur(12px) saturate(1.15);
+  }
+
+  /* ヘッダとボトムナビも透かす。
+     背景の絵を画面の少し上へ持ち上げたぶん、ここが不透明だと
+     絵がまた隠れてしまう。
+     ★ただしカードより濃くする（.88）。
+       ナビの文字は小さく、常に画面に出ているので、
+       ここで読みにくくなると毎回のストレスになる。 */
+  [data-mode="kid"] .hdr,
+  [data-mode="kid"] .bottom {
+    background: rgba(255, 255, 255, .88);
+    -webkit-backdrop-filter: blur(14px) saturate(1.1);
+            backdrop-filter: blur(14px) saturate(1.1);
+  }
+
+  /* ミッションカードは元がグラデ。透かすと数字が沈むので、
+     色は保ったまま少しだけ透過させる */
+  [data-mode="kid"] .mission {
+    background:
+      linear-gradient(135deg, rgba(255, 217, 232, .82), rgba(255, 233, 208, .82));
+    -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+  }
 }
-[data-mode="kid"] .bottom__item .ico { font-size: 26px; }
+/* こどもは的を大きく。SVG なので font-size ではなく実寸を上げる */
+[data-mode="kid"] .bottom__item .ico-svg { width: 28px; height: 28px; }
 [data-mode="kid"] .bottom__item { font-size: 12px; }
 
 /* =====================================================================
@@ -178,7 +209,10 @@
   background: linear-gradient(135deg, #fff3d6, #ffe2ec);
   border-radius: var(--r-lg); padding: var(--sp-4);
 }
-.cheer__from { font-size: var(--fs-sm); font-weight: 800; color: #a2596f; margin-bottom: var(--sp-1); }
+.cheer__from {
+  display: flex; align-items: center; gap: .4em;
+  font-size: var(--fs-sm); font-weight: 800; color: #a2596f; margin-bottom: var(--sp-1);
+}
 .cheer__body { font-size: var(--fs-md); font-weight: 700; }
 .cheer__empty { color: var(--text-sub); font-weight: 600; }
 

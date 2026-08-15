@@ -4,6 +4,7 @@
 //   写真は端末側で圧縮してから非公開バケットへ。表示は毎回署名付きURL。
 // =====================================================================
 import * as db from './../db.js';
+import { icon } from './../icons.js';
 import * as photos from './../photos.js';
 import * as Store from './../store.js';
 import { esc, toast, emptyState, skeleton, modal, confirmDialog } from './../ui.js';
@@ -63,7 +64,7 @@ function render() {
     </div>
 
     ${list.length === 0
-      ? emptyState('📷', kid ? 'まだなにもありません。<br>できるようになったことを かいてみよう！'
+      ? emptyState('📷', kid ? 'まだ何もありません。\nできるようになったことを書いてみよう！'
                              : 'まだ記録がありません')
       : `<div class="grid grid--2">${list.map(card).join('')}</div>`}
   `;
@@ -89,8 +90,8 @@ function card(e) {
     ${(e.photo_paths || []).length > 1
       ? `<p style="color:var(--text-sub);font-size:var(--fs-xs);margin-top:4px">ほか${e.photo_paths.length - 1}枚</p>` : ''}
     ${parent ? `<div class="row" style="margin-top:var(--sp-3);justify-content:flex-end">
-      <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${esc(e.id)}">✏️</button>
-      <button class="btn btn--ghost btn--sm" data-act="delete" data-id="${esc(e.id)}">🗑</button>
+      <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${esc(e.id)}" aria-label="編集">${icon('pencil', { size: 18 })}</button>
+      <button class="btn btn--ghost btn--sm" data-act="delete" data-id="${esc(e.id)}" aria-label="削除">${icon('trash', { size: 18 })}</button>
     </div>` : ''}
   </article>`;
 }

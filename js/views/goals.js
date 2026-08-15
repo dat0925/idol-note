@@ -5,6 +5,7 @@
 // 進捗率は子ノードの平均をサーバートリガーが自動でロールアップする。
 // =====================================================================
 import * as db from './../db.js';
+import { icon } from './../icons.js';
 import * as Store from './../store.js';
 import {
   esc, toast, progressBar, progressRing, emptyState, skeleton, modal, confirmDialog, confetti,
@@ -100,7 +101,7 @@ function adultView() {
     </div>
 
     ${big.length === 0
-      ? emptyState('🎯', '目標がまだありません。<br>「雛形を入れる」で1年ぶんのロードマップを作れます。')
+      ? emptyState('🎯', '目標がまだありません。\n「雛形を入れる」で1年ぶんのロードマップを作れます。')
       : big.map((g) => treeNode(g, 0)).join('')}
   `;
 }
@@ -117,10 +118,10 @@ function treeNode(g, depth) {
       <span class="tree__pct">${g.progress_pct}%</span>
       <button class="btn btn--ghost btn--sm" data-act="toggle-done" data-id="${esc(g.id)}"
               title="完了/未完了">${g.status === 'done' ? '↩︎' : '✓'}</button>
-      <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${esc(g.id)}" title="編集">✏️</button>
+      <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${esc(g.id)}" title="編集" aria-label="編集">${icon('pencil', { size: 18 })}</button>
       ${next ? `<button class="btn btn--ghost btn--sm" data-act="new"
                  data-level="${next}" data-parent="${esc(g.id)}" title="下位目標を追加">＋</button>` : ''}
-      <button class="btn btn--ghost btn--sm" data-act="delete" data-id="${esc(g.id)}" title="削除">🗑</button>
+      <button class="btn btn--ghost btn--sm" data-act="delete" data-id="${esc(g.id)}" title="削除" aria-label="削除">${icon('trash', { size: 18 })}</button>
     </div>
     ${kids.map((k) => treeNode(k, depth + 1)).join('')}
   </div>`;

@@ -9,7 +9,8 @@
 
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./icon-192.png">
-<link rel="apple-touch-icon" href="./icon-192.png">
+<!-- iOS は透過を黒く塗るので、背景を敷いた専用ファイルを渡す -->
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="アイドルノート">
 
@@ -42,7 +43,9 @@
   <!-- ヘッダ -->
   <header class="hdr">
     <button class="hdr__brand" type="button" data-nav="#/home">
-      <span class="hdr__logo">⭐</span>
+      <!-- 装飾ではなくアプリの顔なので img で置く。
+           alt は空。すぐ隣に同じ文字（hdrTitle）があり、読み上げが二重になるため -->
+      <img class="hdr__logo" src="./assets/logo-96.webp" alt="" width="32" height="32" decoding="async">
       <span class="hdr__title" id="hdrTitle">アイドルノート</span>
     </button>
     <div class="hdr__right">

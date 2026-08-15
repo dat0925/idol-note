@@ -4,6 +4,7 @@
 //   練習実施日のドットを重ねて表示する。
 // =====================================================================
 import * as db from './../db.js';
+import { icon } from './../icons.js';
 import { esc, toast, skeleton, emptyState } from './../ui.js';
 import { jstToday, longDate, deadlineText, minutesText } from './../format.js';
 
@@ -79,9 +80,9 @@ function render() {
     <div class="page-head">
       <h1>カレンダー</h1>
       <div class="row">
-        <button class="btn btn--outline btn--sm" data-move="-1">◀︎</button>
+        <button class="btn btn--outline btn--sm" data-move="-1" aria-label="前の月">${icon('chevronL', { size: 18 })}</button>
         <b style="min-width:110px;text-align:center">${y}年${m}月</b>
-        <button class="btn btn--outline btn--sm" data-move="1">▶︎</button>
+        <button class="btn btn--outline btn--sm" data-move="1" aria-label="次の月">${icon('chevronR', { size: 18 })}</button>
         <button class="btn btn--ghost btn--sm" data-move="0">今月</button>
       </div>
     </div>

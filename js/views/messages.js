@@ -4,6 +4,7 @@
 //   （このアプリの中核体験なので、ここだけは同期を待たせない）
 // =====================================================================
 import * as db from './../db.js';
+import { icon } from './../icons.js';
 import * as Store from './../store.js';
 import { esc, toast, emptyState, skeleton, confirmDialog, vibrate } from './../ui.js';
 import { shortDate } from './../format.js';
@@ -84,7 +85,7 @@ function render() {
             <p style="white-space:pre-wrap">${c.reaction ? `<span style="font-size:26px">${emojiOf(c.reaction)}</span> ` : ''}${esc(c.body)}</p>
             ${mine || Store.get('role') === 'parent'
               ? `<div class="row" style="justify-content:flex-end;margin-top:var(--sp-2)">
-                  <button class="btn btn--ghost btn--sm" data-del="${esc(c.id)}">🗑</button></div>`
+                  <button class="btn btn--ghost btn--sm" data-del="${esc(c.id)}" aria-label="削除">${icon('trash', { size: 18 })}</button></div>`
               : ''}
           </li>`;
         }).join('')}</ul>`}

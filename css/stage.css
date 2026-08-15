@@ -85,11 +85,12 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  /* ★下端に置くと、ボトムナビと最後のカードに半分隠れて「半分しか見えない」。
+     ナビの高さぶん＋余白を空けて、絵の全体が見える位置まで持ち上げる。 */
+  padding-bottom: calc(var(--nav-h) + 6vh);
 }
 .stage__hero img {
   width: min(86vw, 460px);
-  /* 画面下に足元を沈めて「そこに立っている」感じにする */
-  margin-bottom: -6%;
   /* カード側がすりガラスなので、ここは濃いめでちょうどよくなる */
   opacity: .58;
   /* 上端を溶かして、カードの下に自然に潜り込ませる */

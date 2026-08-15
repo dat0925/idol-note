@@ -24,3 +24,6 @@ idleimage*.png
 idoleimage*.png
 idolimage*.png
 hero-src*.png
+
+# ロゴの元データ（2MB）。配信に使うのは tools/build-icons.py が書き出したほう
+logo.png

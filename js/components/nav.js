@@ -7,27 +7,30 @@
 // =====================================================================
 import * as Store from './../store.js';
 import { esc } from './../ui.js';
+import { icon } from './../icons.js';
 
 // ★こどもモードの文言は小学5年生を基準にする（漢字を使う）。
 //   ひらがなに開きすぎると、かえって読みにくく子ども扱いされている感じになる。
+// ★アイコンは絵文字ではなく線画SVG（js/icons.js）。
+//   絵文字は端末ごとに絵が変わり、色も太さもバラバラで画面がまとまらない。
 const KID_NAV = [
-  { path: '/home',     icon: '🏠', label: 'ホーム' },
-  { path: '/practice', icon: '✏️', label: '練習' },
-  { path: '/goals',    icon: '🎯', label: '目標' },
-  { path: '/album',    icon: '📷', label: 'アルバム' },
+  { path: '/home',     icon: 'home',   label: 'ホーム' },
+  { path: '/practice', icon: 'pencil', label: '練習' },
+  { path: '/goals',    icon: 'target', label: '目標' },
+  { path: '/album',    icon: 'camera', label: 'アルバム' },
 ];
 
 const ADULT_NAV = [
-  { path: '/home',      icon: '🏠', label: 'ホーム' },
-  { path: '/practice',  icon: '✏️', label: '練習記録' },
-  { path: '/goals',     icon: '🎯', label: '目標' },
-  { path: '/album',     icon: '📷', label: '成長の記録' },
-  { path: '/messages',  icon: '💌', label: '応援' },
+  { path: '/home',      icon: 'home',     label: 'ホーム' },
+  { path: '/practice',  icon: 'pencil',   label: '練習記録' },
+  { path: '/goals',     icon: 'target',   label: '目標' },
+  { path: '/album',     icon: 'camera',   label: '成長の記録' },
+  { path: '/messages',  icon: 'mail',     label: '応援' },
   { sep: true },
-  { path: '/auditions', icon: '🎬', label: 'オーディション', secure: true },
-  { path: '/calendar',  icon: '📅', label: 'カレンダー',     secure: true },
-  { path: '/body',      icon: '📏', label: 'からだの記録',   secure: true },
-  { path: '/settings',  icon: '⚙️', label: '設定',           secure: true },
+  { path: '/auditions', icon: 'film',     label: 'オーディション', secure: true },
+  { path: '/calendar',  icon: 'calendar', label: 'カレンダー',     secure: true },
+  { path: '/body',      icon: 'ruler',    label: 'からだの記録',   secure: true },
+  { path: '/settings',  icon: 'settings', label: '設定',           secure: true },
 ];
 
 /** ボトムナビ（スマホ、およびこどもモードのPC） */
@@ -39,7 +42,7 @@ export function renderBottom(root) {
   root.innerHTML = items.map((i) => `
     <a class="bottom__item" href="#${i.path}"
        ${route === i.path ? 'aria-current="page"' : ''}>
-      <span class="ico" aria-hidden="true">${i.icon}</span>
+      <span class="ico">${icon(i.icon)}</span>
       <span>${esc(i.label)}</span>
     </a>`).join('');
 }
@@ -51,9 +54,9 @@ export function renderSide(root) {
     if (i.sep) return '<div class="side__sep"></div>';
     return `<a class="side__item" href="#${i.path}"
               ${route === i.path ? 'aria-current="page"' : ''}>
-      <span aria-hidden="true">${i.icon}</span>
+      <span class="ico">${icon(i.icon, { size: 20 })}</span>
       <span>${esc(i.label)}</span>
-      ${i.secure ? '<span class="spacer"></span><span aria-hidden="true" style="opacity:.5">🔒</span>' : ''}
+      ${i.secure ? `<span class="spacer"></span><span class="ico ico--dim">${icon('lock', { size: 14 })}</span>` : ''}
     </a>`;
   }).join('');
 }
@@ -83,7 +86,7 @@ export function renderHeader() {
   if (toggle) {
     // 子アカウントにはモードトグルを見せない
     toggle.hidden = role !== 'parent';
-    toggle.textContent = mode === 'kid' ? '👩 おとな' : '🎀 こども';
+    toggle.textContent = mode === 'kid' ? 'おとな' : 'こども';
     toggle.setAttribute('aria-label',
       mode === 'kid' ? 'おとなモードに切り替える' : 'こどもモードに切り替える');
   }

@@ -6,6 +6,7 @@
 import * as db from './../db.js';
 import * as Store from './../store.js';
 import * as Stage from './../components/stage.js';
+import { icon } from './../icons.js';
 import { esc, toast, progressRing, progressBar, emptyState, skeleton, vibrate, modal } from './../ui.js';
 import {
   jstToday, shortDate, minutesText, addDays, deadlineText, deadlineLevel,
@@ -82,10 +83,10 @@ function kidView() {
     </div>
 
     <a class="btn btn--primary btn--block" href="#/practice"
-       style="margin-bottom:var(--sp-4)">✏️ 今日の練習を記録する</a>
+       style="margin-bottom:var(--sp-4)">${icon('pencil')} 今日の練習を記録する</a>
 
     ${streak > 0 ? `<div class="card" style="text-align:center">
-      <p style="font-size:var(--fs-2xl);font-weight:900">🔥 ${streak}日</p>
+      <p style="font-size:var(--fs-2xl);font-weight:900">${icon('flame', { size: 30 })} ${streak}日</p>
       <p style="color:var(--text-sub);font-size:var(--fs-sm)">
         連続記録${state.streak?.best_streak > streak ? `（最高記録は${state.streak.best_streak}日）` : ''}
       </p>
@@ -109,7 +110,7 @@ function kidView() {
 function heroPickerButton() {
   return `<div style="margin-top:var(--sp-3);text-align:center">
     <button type="button" class="btn btn--soft btn--sm" data-act="pick-hero">
-      🖼️ 背景を選ぶ
+      ${icon('image', { size: 18 })} 背景を選ぶ
     </button>
   </div>`;
 }
@@ -122,7 +123,7 @@ function heroPickerButton() {
 function openHeroPicker() {
   const now = Stage.currentHero();
   const m = modal(`
-    <p class="modal__title">🖼️ 背景を選ぶ</p>
+    <p class="modal__title">${icon('image', { size: 20 })} 背景を選ぶ</p>
     <p style="color:var(--text-sub);font-size:var(--fs-sm);margin-bottom:var(--sp-3)">
       横にスワイプすると、ほかの絵が出てきます。
     </p>
@@ -158,7 +159,7 @@ function openHeroPicker() {
 function cheerCard() {
   const latest = (state.cheers || []).find((c) => c.author_user_id !== Store.get('user')?.id);
   return `<div class="cheer" style="margin-top:var(--sp-3)">
-    <p class="cheer__from">💌 おうちの人からの応援</p>
+    <p class="cheer__from">${icon('mail', { size: 18 })} おうちの人からの応援</p>
     ${latest
       ? `<p class="cheer__body">${esc(latest.body || reactionEmoji(latest.reaction))}</p>`
       : '<p class="cheer__body cheer__empty">まだメッセージはありません</p>'}
@@ -180,7 +181,7 @@ function rewardCard() {
     .find((r) => r.cost_points > balance) || open[0];
   const left = Math.max(0, next.cost_points - balance);
   return `<div class="card" style="margin-top:var(--sp-3)">
-    <p class="card__title">🏆 ごほうび</p>
+    <p class="card__title">${icon('gift', { size: 20 })} ごほうび</p>
     <p style="font-weight:800">${esc(next.icon)} ${esc(next.title)}</p>
     <p style="color:var(--text-sub);font-size:var(--fs-sm);margin-bottom:var(--sp-2)">
       ${left > 0 ? `あと ${left} ポイント！` : '交換できるよ！'}
@@ -197,7 +198,7 @@ function badgeCard() {
   const have = new Set((state.badges || []).map((b) => b.badge_key));
   if (!have.size) return '';
   return `<div class="card" style="margin-top:var(--sp-3)">
-    <p class="card__title">🎖️ 集めたバッジ（${have.size} / ${BADGES.length}）</p>
+    <p class="card__title">${icon('award', { size: 20 })} 集めたバッジ（${have.size} / ${BADGES.length}）</p>
     <div class="reward-track">
       ${BADGES.map((b) => `<span class="${have.has(b.key) ? '' : 'off'}"
         title="${esc(b.name)}：${esc(b.desc)}">${b.icon}</span>`).join('')}
