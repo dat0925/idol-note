@@ -13,6 +13,7 @@ import * as LS from './storage.js';
 import * as Router from './router.js';
 import * as Nav from './components/nav.js';
 import { requestUnlock, setupPin } from './components/pin-modal.js';
+import * as Stage from './components/stage.js';
 import { toast, $ } from './ui.js';
 import { flushOutbox } from './sync.js';
 
@@ -70,6 +71,12 @@ function applyMode(mode) {
     ?.setAttribute('content', mode === 'adult' ? '#6c63c7' : '#ff6fa5');
   LS.setMode(mode);
   Store.set({ mode });
+
+  // 背景ステージはこどもモードだけ。
+  // おとなモードは「作業する画面」なので、動くものを置かない。
+  // ★モード切替は何度も起こるので、必ず destroy を通す（ハンドラの積み上がり防止）
+  if (mode === 'kid') Stage.mount();
+  else Stage.destroy();
 }
 
 async function toggleMode() {

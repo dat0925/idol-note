@@ -9,7 +9,7 @@
    ★リリースのたびに CACHE の版数を上げること（デプロイ手順に含める）。
    ===================================================================== */
 
-const CACHE = 'idol-v3';
+const CACHE = 'idol-v4';
 
 const SHELL = [
   './',
@@ -18,6 +18,7 @@ const SHELL = [
   './css/style.css',
   './css/kid.css',
   './css/adult.css',
+  './css/stage.css',
   './js/app.js',
   './js/config.js',
   './js/store.js',
@@ -32,6 +33,7 @@ const SHELL = [
   './js/format.js',
   './js/components/nav.js',
   './js/components/pin-modal.js',
+  './js/components/stage.js',
   './js/views/auth-view.js',
   './js/views/home.js',
   './js/views/practice.js',
@@ -45,6 +47,9 @@ const SHELL = [
   './js/views/settings.js',
   './icon-192.png',
   './icon-512.png',
+  // 背景イラスト。まだ置いていない環境では cache.add が失敗するが、
+  // install は Promise.allSettled なので他のファイルは正常にキャッシュされる。
+  './assets/idol-hero.webp',
 ];
 
 self.addEventListener('install', (ev) => {

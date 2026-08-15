@@ -220,6 +220,52 @@ Google へ遷移して戻る間にモーダルは失われるため、
 
 ---
 
+## 6.5 背景ステージ（こどもモードの視差演出）
+
+娘のやる気を上げるための装飾。`css/stage.css` + `js/components/stage.js`。
+
+### 構成
+`body` の先頭に `.stage`（`position: fixed`）を差し込み、`.shell` を前面に置く。
+奥から glow → stars → hero（イラスト）→ sparks の4層。
+
+### 動かし方（ここが要点）
+**JS が書くのは `.stage` の `--sx` / `--sy` だけ**。奥行きごとの合成は
+CSS 側の `--depth` に任せる。
+
+```
+transform: translate3d(calc(var(--sx) * var(--depth)), calc(var(--sy) * var(--depth)), 0)
+```
+
+レイヤーごとに `style.transform` を JS から書きに行くと、レイヤー数ぶん
+スタイル再計算が走って古い端末でスクロールが引っかかる。
+変数1つの更新なら再計算は1回で済む。
+
+- 入力: スクロール（全端末）＋ ポインタ（デスクトップのみ）
+- 目標値へ毎フレーム12%ずつ寄せる。止めた瞬間にピタッと止まらない
+- 動かすのは `transform` と `opacity` だけ。`top`/`width` は触らない
+
+### 決めごと
+| 項目 | 判断 |
+|---|---|
+| おとなモード | **出さない**。作業する画面に動くものを置かない（`applyMode` で `destroy`） |
+| 装飾の粒 | **絵文字ではなくインラインSVG**。絵文字は端末にフォントが無いと豆腐（□）になる。実際 Windows で `🩷` が四角になった |
+| `prefers-reduced-motion` | 動きを全部止める。iOS の「視差効果を減らす」も拾う。静止した装飾としては残す |
+| 支援技術 | `aria-hidden="true"` + `pointer-events: none`。読み上げにも操作にも干渉しない |
+| 画像が無いとき | `stage.js` が読み込み失敗を拾ってその層だけ畳む。**画面は壊れない** |
+
+### やる気の仕掛け
+今日のミッションを全部終えると `Stage.setProgress()` が `.is-cheering` を付け、
+2人が前に出て（不透明度が上がり）跳ねる。「終わらせたくなる」ための仕掛け。
+
+### 画像の差し替え
+```bash
+python tools/build-hero.py <元画像のパス>   # 長辺920pxの透過WebPにする
+```
+生成AIの出力は 1〜3MB あるのでそのまま置かない。娘は4Gのスマホで開く。
+差し替えたら `sw.js` の `CACHE` 版数を上げること。
+
+---
+
 ## 7. オフライン / 同期
 
 - Supabase が source of truth。localStorage は**キャッシュ**と**送信待ちバッファ**のみ
@@ -257,7 +303,9 @@ Google へ遷移して戻る間にモーダルは失われるため、
 ```
 index.html            単一シェル（head内インラインscriptで data-mode を先に適用しFOUC防止）
 sw.js                 Service Worker（Network First / CACHE版数を毎リリース上げる）
-css/                  style.css（トークン・共通） kid.css adult.css
+assets/               背景イラスト（idol-hero.webp）。差し替えは tools/build-hero.py
+tools/build-hero.py   イラストを長辺920pxの透過WebPに変換する道具
+css/                  style.css（トークン・共通） kid.css adult.css stage.css
 js/
   app.js              エントリ（SW登録・認証ブート・モード適用・グローバル配線）
   config.js           Supabase クライアント
@@ -271,7 +319,7 @@ js/
   photos.js           Canvas圧縮 → アップロード → 署名URL
   ui.js               DOMヘルパ（modal/toast/confirm/ring/confetti）
   format.js           純関数のみ（テスト対象）
-  components/         nav.js pin-modal.js
+  components/         nav.js pin-modal.js stage.js
   views/              auth-view home practice goals album messages rewards
                       auditions calendar body settings
 supabase/migrations/  0001〜0009（後述）

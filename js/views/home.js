@@ -5,6 +5,7 @@
 // =====================================================================
 import * as db from './../db.js';
 import * as Store from './../store.js';
+import * as Stage from './../components/stage.js';
 import { esc, toast, progressRing, progressBar, emptyState, skeleton } from './../ui.js';
 import {
   jstToday, shortDate, minutesText, addDays, deadlineText, deadlineLevel,
@@ -278,7 +279,17 @@ function auditionCard() {
 function render() {
   if (!root) return;
   if (state.loading) { root.innerHTML = skeleton(4, 100); return; }
-  root.innerHTML = Store.get('mode') === 'kid' ? kidView() : adultView();
+  const kid = Store.get('mode') === 'kid';
+  root.innerHTML = kid ? kidView() : adultView();
+
+  // 背景の2人に今日の達成状況を伝える。
+  // 全部終わった日は前に出て喜ぶので、「終わらせたい」動機になる。
+  if (kid) {
+    Stage.setProgress(
+      (state.items || []).filter((i) => i.done).length,
+      (state.menus || []).length,
+    );
+  }
 }
 
 export default {

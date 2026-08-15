@@ -1,0 +1,149 @@
+/* =====================================================================
+   stage.css — こどもモードの背景ステージ（パララックス）
+
+   ねらい:
+     娘が朝アプリを開いた瞬間に「やるぞ」と思えること。
+     数字とグラフだけの画面にしない。
+
+   方針:
+     ・装飾専用。DOM は aria-hidden、pointer-events: none。
+       読み上げにも操作にも一切干渉しない。
+     ・アニメーションは transform と opacity だけ。
+       width/top/left を動かすとレイアウトが再計算されて古い端末で落ちる。
+     ・奥行きは --depth で表現する。JS は --sx / --sy を1回書くだけで、
+       各レイヤーの合成は CSS 側にやらせる（JS から個別に transform を
+       書き込むと、レイヤー数だけスタイル再計算が走る）。
+     ・prefers-reduced-motion では動きを全部止める。
+       乗り物酔いする子がいるし、iOS の「視差効果を減らす」も拾える。
+
+   ★色は :root のトークン経由。ここで新しい色を発明しない。
+   ===================================================================== */
+
+/* こどもモードでだけ描く。おとなモードは落ち着いた画面のままにする */
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* 中身の描画をこの矩形に閉じ込める（外側の再描画を誘発させない） */
+  contain: strict;
+  /* JS が書き換えるのはこの2つだけ */
+  --sx: 0px;
+  --sy: 0px;
+
+  /* 粒の色。こども/おとなで変えたくなったら kid.css 側で上書きする */
+  --stage-c1: #ffb3d1;   /* ピンク */
+  --stage-c2: #ffd76e;   /* ゴールド */
+  --stage-c3: #a9d4ff;   /* 水色 */
+}
+
+/* ステージより前に本体を出す */
+.shell { position: relative; z-index: 1; }
+
+.stage__layer {
+  position: absolute;
+  /* 視差でずれても縁が見えないよう、少し大きめに敷く */
+  inset: -10%;
+  --depth: 0;
+  transform: translate3d(calc(var(--sx) * var(--depth)), calc(var(--sy) * var(--depth)), 0);
+  will-change: transform;
+}
+
+/* ── 奥: やわらかい光 ───────────────────────────────── */
+.stage__glow {
+  --depth: 0.12;
+  background:
+    radial-gradient(38% 30% at 78% 78%, rgba(255, 158, 196, .38) 0%, transparent 70%),
+    radial-gradient(34% 26% at 18% 62%, rgba(150, 200, 255, .30) 0%, transparent 70%);
+}
+
+/* ── 中: きらきら（ゆっくり瞬く） ─────────────────────── */
+.stage__stars { --depth: 0.3; }
+.stage__stars i {
+  position: absolute;
+  left: var(--x); top: var(--y);
+  display: block;
+  opacity: .0;
+  animation: stage-twinkle var(--dur, 4s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+.stage i svg { display: block; }
+@keyframes stage-twinkle {
+  0%, 100% { opacity: 0; transform: scale(.6) rotate(0deg); }
+  50%      { opacity: .85; transform: scale(1) rotate(12deg); }
+}
+
+/* ── 手前: 2人のイラスト ─────────────────────────────── */
+.stage__hero {
+  --depth: 0.5;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.stage__hero img {
+  width: min(86vw, 460px);
+  /* 画面下に足元を沈めて「そこに立っている」感じにする */
+  margin-bottom: -6%;
+  opacity: .34;
+  /* 上端を溶かして、カードの下に自然に潜り込ませる */
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 26%, #000 100%);
+          mask-image: linear-gradient(180deg, transparent 0%, #000 26%, #000 100%);
+  filter: saturate(1.05);
+  transition: opacity .45s ease, transform .45s ease;
+  transform-origin: 50% 100%;
+}
+
+/* 画像がまだ無い / 読み込めないときは、この層だけ消す。
+   グラデとキラキラは残るので、画面が壊れて見えない。 */
+.stage__hero.is-missing { display: none; }
+
+/* きょうのミッションを全部やり終えた日 = 2人が前に出て喜ぶ */
+.stage.is-cheering .stage__hero img {
+  opacity: .62;
+  animation: stage-cheer 1.6s ease-in-out infinite;
+}
+@keyframes stage-cheer {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-10px) scale(1.02); }
+}
+
+/* ── 最前面: 舞い上がる粒 ───────────────────────────── */
+.stage__sparks { --depth: 0.85; }
+.stage__sparks i {
+  position: absolute;
+  left: var(--x);
+  bottom: -24px;
+  display: block;
+  opacity: 0;
+  animation: stage-float var(--dur, 9s) linear infinite;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes stage-float {
+  0%   { opacity: 0;  transform: translateY(0)      translateX(0)             scale(.7); }
+  12%  { opacity: .9; }
+  80%  { opacity: .5; }
+  100% { opacity: 0;  transform: translateY(-92vh)  translateX(var(--drift))  scale(1.1); }
+}
+
+/* 全部クリアした日は粒を増やしたように見せる（要素数は増やさず速くする） */
+.stage.is-cheering .stage__sparks i { animation-duration: calc(var(--dur, 9s) * .6); }
+
+/* =====================================================================
+   動きを減らす設定への対応
+   ・iOS「視差効果を減らす」/ Android「アニメーションを削除」で効く
+   ・完全に消さず、静止した装飾としては残す（画面がさみしくならない）
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .stage__layer { transform: none !important; }
+  .stage__stars i,
+  .stage__sparks i,
+  .stage.is-cheering .stage__hero img { animation: none; }
+  .stage__stars i { opacity: .7; }
+  .stage__sparks i { opacity: .45; }
+}
+
+/* 画面が低いときは主張しすぎないように */
+@media (max-height: 560px) {
+  .stage__hero img { opacity: .22; }
+}
