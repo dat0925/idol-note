@@ -17,7 +17,12 @@
   --surface: #ffffff;
   --surface-2: #fdf2f7;
   --text: #3a2b36;
-  --text-sub: #8a7684;
+  /* ★カードを透かしたぶん、補助文字は濃くする。
+     元の #8a7684 は、真っ白なカードの上ですら約4.2 で WCAG AA（4.5）に届いていない。
+     透過するとイラストの暗部の上で 2.4 まで落ちて実際に読めなくなる。
+     #5b4a54 なら 背景の上で4.71 / 白の上で8.23 と、どちらでも基準を満たす。
+     本文(#3a2b36)との明度差は残るので、見出しと補助の区別はつく。 */
+  --text-sub: #5b4a54;
   --border: #f7e2ec;
   --accent: #ff6fa5;
   --accent-ink: #ffffff;
@@ -44,19 +49,22 @@
   background: rgba(255, 255, 255, .94);
 }
 @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
+  /* ★透過を上げるときは、同時にボカシも強める。
+     ボカシは背景の細かい模様を潰すので、同じ透過率でも文字が読みやすくなる。
+     透過だけ上げると、イラストの線と文字が重なって一気に読めなくなる。 */
   [data-mode="kid"] .card {
-    background: rgba(255, 255, 255, .74);
-    -webkit-backdrop-filter: blur(12px) saturate(1.15);
-            backdrop-filter: blur(12px) saturate(1.15);
+    background: rgba(255, 255, 255, .60);
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+            backdrop-filter: blur(18px) saturate(1.2);
   }
 
   /* 応援カードは元の暖色グラデを保ったまま透かす
      （白で塗りつぶすと、ここだけ冷たくなって浮く） */
   [data-mode="kid"] .cheer {
     background:
-      linear-gradient(135deg, rgba(255, 243, 214, .80), rgba(255, 226, 236, .80));
-    -webkit-backdrop-filter: blur(12px) saturate(1.15);
-            backdrop-filter: blur(12px) saturate(1.15);
+      linear-gradient(135deg, rgba(255, 243, 214, .68), rgba(255, 226, 236, .68));
+    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+            backdrop-filter: blur(18px) saturate(1.2);
   }
 
   /* ヘッダとボトムナビも透かす。
@@ -67,18 +75,18 @@
        ここで読みにくくなると毎回のストレスになる。 */
   [data-mode="kid"] .hdr,
   [data-mode="kid"] .bottom {
-    background: rgba(255, 255, 255, .88);
-    -webkit-backdrop-filter: blur(14px) saturate(1.1);
-            backdrop-filter: blur(14px) saturate(1.1);
+    background: rgba(255, 255, 255, .82);
+    -webkit-backdrop-filter: blur(18px) saturate(1.1);
+            backdrop-filter: blur(18px) saturate(1.1);
   }
 
   /* ミッションカードは元がグラデ。透かすと数字が沈むので、
      色は保ったまま少しだけ透過させる */
   [data-mode="kid"] .mission {
     background:
-      linear-gradient(135deg, rgba(255, 217, 232, .82), rgba(255, 233, 208, .82));
-    -webkit-backdrop-filter: blur(10px);
-            backdrop-filter: blur(10px);
+      linear-gradient(135deg, rgba(255, 217, 232, .70), rgba(255, 233, 208, .70));
+    -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px);
   }
 }
 /* こどもは的を大きく。SVG なので font-size ではなく実寸を上げる */

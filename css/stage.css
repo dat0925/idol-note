@@ -92,7 +92,7 @@
 .stage__hero img {
   width: min(86vw, 460px);
   /* カード側がすりガラスなので、ここは濃いめでちょうどよくなる */
-  opacity: .58;
+  opacity: .70;
   /* 上端を溶かして、カードの下に自然に潜り込ませる */
   -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 26%, #000 100%);
           mask-image: linear-gradient(180deg, transparent 0%, #000 26%, #000 100%);
@@ -107,7 +107,7 @@
 
 /* きょうのミッションを全部やり終えた日 = 2人が前に出て喜ぶ */
 .stage.is-cheering .stage__hero img {
-  opacity: .62;
+  opacity: .82;
   animation: stage-cheer 1.6s ease-in-out infinite;
 }
 @keyframes stage-cheer {
@@ -152,12 +152,12 @@
 
 /* 画面が低いときは主張しすぎないように */
 @media (max-height: 560px) {
-  .stage__hero img { opacity: .34; }
+  .stage__hero img { opacity: .42; }
 }
 
 /* PCでは本文が中央の1カラムに収まるので、イラストを右に逃がして
    カードと重ならない場所に立たせる（スマホでは中央のまま） */
 @media (min-width: 900px) {
   .stage__hero { justify-content: flex-end; padding-right: 4vw; }
-  .stage__hero img { width: min(38vw, 520px); opacity: .72; }
+  .stage__hero img { width: min(38vw, 520px); opacity: .82; }
 }

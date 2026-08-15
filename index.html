@@ -35,9 +35,26 @@
 
 <!-- 起動スプラッシュ。app.js が認証判定を終えたら外す -->
 <div id="boot" class="boot">
-  <div class="boot__star">⭐</div>
-  <p class="boot__text">よみこみちゅう…</p>
+  <!-- 起動画面には「その子が選んだ」背景イラストを出す。
+       ★サムネ（220px）を使う。本体は300KB前後あり、起動を待たせてしまう。
+         サムネは全種を Service Worker が先読みしているので、
+         2回目以降はオフラインでも即座に出る。
+       ★CSS変数ではなく img の src にしている。
+         カスタムプロパティに入れた相対URLは「使う側のCSSファイル」基準で
+         解決されるため ./assets が /css/assets になって404になった。
+         img の src ならドキュメント基準なので、GitHub Pages のサブパスでも壊れない。 -->
+  <img class="boot__hero" src="./assets/idol-hero-1-thumb.webp" alt="" decoding="async">
+  <p class="boot__text">読み込み中…</p>
 </div>
+<script>
+  // 直後に置いて即座に差し替える（描画前なのでチラつかない）
+  try {
+    var h = parseInt(localStorage.getItem('idol:hero'), 10);
+    if (h >= 2 && h <= 7) {
+      document.querySelector('.boot__hero').src = './assets/idol-hero-' + h + '-thumb.webp';
+    }
+  } catch (e) { /* 既定の1枚目のままで問題ない */ }
+</script>
 
 <div id="shell" class="shell" hidden>
   <!-- ヘッダ -->

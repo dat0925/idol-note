@@ -71,7 +71,7 @@ function kidView() {
   return `
     <div class="mission" style="margin-bottom:var(--sp-4)">
       <div class="mission__text">
-        <p class="mission__label">今日のミッション</p>
+        <p class="mission__label">${name ? esc(name) + 'の' : ''}今日のミッション</p>
         <p class="mission__count">${done}<span style="font-size:.5em"> / ${total}</span></p>
         <p class="mission__note">
           ${done === 0 ? 'まずは1つやってみよう！'

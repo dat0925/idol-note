@@ -75,11 +75,22 @@ img { max-width: 100%; display: block; }
   display: grid; place-content: center; justify-items: center; gap: var(--sp-3);
   background: var(--bg);
 }
-.boot__star { font-size: 56px; animation: bootPulse 1.2s var(--ease) infinite; }
+/* 起動画面のイラスト（src は index.html 側で決める） */
+.boot__hero {
+  width: 200px; height: 200px;
+  object-fit: cover;
+  border-radius: 28px;
+  box-shadow: var(--shadow-1);
+  animation: bootPulse 1.6s var(--ease) infinite;
+}
 .boot__text { color: var(--text-sub); font-size: var(--fs-sm); }
 @keyframes bootPulse {
-  0%, 100% { transform: scale(1); opacity: .7; }
-  50%      { transform: scale(1.15); opacity: 1; }
+  0%, 100% { transform: scale(1);    opacity: .82; }
+  50%      { transform: scale(1.04); opacity: 1; }
+}
+/* 動きを減らす設定では脈打たせない */
+@media (prefers-reduced-motion: reduce) {
+  .boot__hero { animation: none; opacity: 1; }
 }
 
 /* =====================================================================
@@ -123,11 +134,30 @@ img { max-width: 100%; display: block; }
   border-bottom: 1px solid var(--border);
   position: sticky; top: 0; z-index: 20;
 }
-.hdr__brand { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) 0; }
+/* ★min-width: 0 が要る。
+   これが無いと、nowrap のタイトルの min-content 幅より縮まず、
+   右のボタン群（モード切替・アバター）を画面外へ押し出してしまう。
+   実際スマホでタイトルがボタンに隠れて読めなくなった。 */
+.hdr__brand {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) 0;
+  min-width: 0;
+}
 /* ロゴ画像。角丸は画像側に焼き込んであるので、ここでは大きさだけ決める */
-.hdr__logo { width: 32px; height: 32px; border-radius: 8px; display: block; }
-.hdr__title { font-weight: 700; font-size: var(--fs-lg); white-space: nowrap; }
-.hdr__right { display: flex; align-items: center; gap: var(--sp-2); }
+.hdr__logo { width: 32px; height: 32px; border-radius: 8px; display: block; flex: none; }
+.hdr__title {
+  font-weight: 700; font-size: var(--fs-lg);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+/* 操作系は縮めない。縮むと押せる的が小さくなる */
+.hdr__right { display: flex; align-items: center; gap: var(--sp-2); flex: none; }
+
+/* 狭い画面ではアプリ名の文字を落とす。
+   ロゴ自体がワードマークなので識別は保てる。
+   「今どのアプリか」より「操作できるか」を優先する。 */
+@media (max-width: 400px) {
+  .hdr__title { display: none; }
+}
 .hdr__mode {
   min-height: 36px; padding: 0 var(--sp-3);
   border-radius: var(--r-pill);

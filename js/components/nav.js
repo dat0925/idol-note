@@ -69,11 +69,12 @@ export function renderHeader() {
   const streak = Store.get('streak');
   const talent = Store.get('members').find((m) => m.is_talent);
 
+  // ★ヘッダにはアプリ名だけを置く。
+  //   「きょうかの」のような個人名はパーソナライズ＝コンテンツであって識別ではない。
+  //   一番狭い場所に置くと右のボタン群を押し出すし、ニックネームが長くなれば必ず破綻する。
+  //   挨拶はホーム画面（余白がある場所）に移した（views/home.js）。
   const title = document.getElementById('hdrTitle');
-  if (title) {
-    const name = talent?.nickname || talent?.display_name;
-    title.textContent = (mode === 'kid' && name) ? `${name}のアイドルノート` : 'アイドルノート';
-  }
+  if (title) title.textContent = 'アイドルノート';
 
   const badge = document.getElementById('streakBadge');
   if (badge) {
