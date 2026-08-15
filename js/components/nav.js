@@ -109,10 +109,14 @@ export function renderHeader() {
   const heroBtn = document.getElementById('heroPick');
   if (heroBtn) heroBtn.hidden = mode !== 'kid' || !member;
 
+  // アバターは「設定への入口」。★こどもモードでは出さない。
+  //   こどもモードでは応援画面へ飛ぶだけで、応援はボトムナビにあるので完全な重複。
+  //   おとなモードのスマホでは、ナビが5つで設定が入らないため
+  //   ここが設定への唯一の入口になる。だから残す。
   const avatar = document.getElementById('userMenu');
   if (avatar) {
-    avatar.hidden = !member;
-    if (member) avatar.textContent = (member.nickname || member.display_name || '👤').slice(0, 1);
+    avatar.hidden = !member || mode !== 'adult';
+    if (member) avatar.textContent = (member.nickname || member.display_name || '設').slice(0, 1);
   }
 }
 

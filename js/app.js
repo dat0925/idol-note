@@ -190,11 +190,8 @@ function wireGlobals() {
     heroBtn.addEventListener('click', () => openHeroPicker());
   }
 
-  $('#userMenu')?.addEventListener('click', () => {
-    // おとなモードなら設定画面、こどもモードならログアウト確認だけ
-    if (Store.get('mode') === 'adult') Router.navigate('/settings');
-    else Router.navigate('/messages');
-  });
+  // 設定への入口。おとなモードでしか描画されない（nav.js 参照）
+  $('#userMenu')?.addEventListener('click', () => Router.navigate('/settings'));
 
   document.querySelector('.hdr__brand')?.addEventListener('click', () => Router.navigate('/home'));
 
