@@ -1,12 +1,12 @@
 // =====================================================================
 // home.js — ホーム
-//   こども: きょうのミッション / 応援 / ごほうび進捗 / バッジ
+//   こども: 今日のミッション / 応援 / ごほうび進捗 / バッジ / 背景えらび
 //   おとな: ダッシュボード（連続日数・今月・次の締切・目標進捗・直近の記録）
 // =====================================================================
 import * as db from './../db.js';
 import * as Store from './../store.js';
 import * as Stage from './../components/stage.js';
-import { esc, toast, progressRing, progressBar, emptyState, skeleton, vibrate } from './../ui.js';
+import { esc, toast, progressRing, progressBar, emptyState, skeleton, vibrate, modal } from './../ui.js';
 import {
   jstToday, shortDate, minutesText, addDays, deadlineText, deadlineLevel,
   BADGES, AUDITION_STATUS,
@@ -70,11 +70,11 @@ function kidView() {
   return `
     <div class="mission" style="margin-bottom:var(--sp-4)">
       <div class="mission__text">
-        <p class="mission__label">きょうのミッション</p>
+        <p class="mission__label">今日のミッション</p>
         <p class="mission__count">${done}<span style="font-size:.5em"> / ${total}</span></p>
         <p class="mission__note">
           ${done === 0 ? 'まずは1つやってみよう！'
-            : done >= total && total > 0 ? 'ぜんぶクリア！すごい！🎉'
+            : done >= total && total > 0 ? '全部クリア！すごい！🎉'
             : 'あと' + (total - done) + 'つ！'}
         </p>
       </div>
@@ -82,31 +82,51 @@ function kidView() {
     </div>
 
     <a class="btn btn--primary btn--block" href="#/practice"
-       style="margin-bottom:var(--sp-4)">✏️ きょうのれんしゅうをきろくする</a>
+       style="margin-bottom:var(--sp-4)">✏️ 今日の練習を記録する</a>
 
     ${streak > 0 ? `<div class="card" style="text-align:center">
       <p style="font-size:var(--fs-2xl);font-weight:900">🔥 ${streak}日</p>
       <p style="color:var(--text-sub);font-size:var(--fs-sm)">
-        れんぞくきろく${state.streak?.best_streak > streak ? `（さいこう記録は${state.streak.best_streak}日）` : ''}
+        連続記録${state.streak?.best_streak > streak ? `（最高記録は${state.streak.best_streak}日）` : ''}
       </p>
     </div>` : ''}
 
     ${cheerCard()}
     ${rewardCard()}
     ${badgeCard()}
-    ${heroPicker()}
+    ${heroPickerButton()}
   `;
 }
 
 /**
- * 背景イラストを選ぶ。
+ * 背景イラストを選ぶ入口。
+ *
+ * ★一覧をホームに並べない。
+ *   スマホだと選択肢がカードで画面を埋めてしまい、
+ *   肝心の背景がほとんど見えなくなる（本末転倒）。
+ *   ボタン1つに畳んで、選ぶときだけモーダルを開く。
+ */
+function heroPickerButton() {
+  return `<div style="margin-top:var(--sp-3);text-align:center">
+    <button type="button" class="btn btn--soft btn--sm" data-act="pick-hero">
+      🖼️ 背景を選ぶ
+    </button>
+  </div>`;
+}
+
+/**
+ * 背景えらびのモーダル。
+ * 横スクロール（スマホではスワイプ）で並べ、選んだら閉じる。
  * 「自分の画面」だと思えることがやる気につながるので、親ではなく本人に選ばせる。
  */
-function heroPicker() {
+function openHeroPicker() {
   const now = Stage.currentHero();
-  return `<div class="card" style="margin-top:var(--sp-3)">
-    <p class="card__title">🖼️ はいけいをえらぶ</p>
-    <div class="hero-pick" role="radiogroup" aria-label="はいけいのイラスト">
+  const m = modal(`
+    <p class="modal__title">🖼️ 背景を選ぶ</p>
+    <p style="color:var(--text-sub);font-size:var(--fs-sm);margin-bottom:var(--sp-3)">
+      横にスワイプすると、ほかの絵が出てきます。
+    </p>
+    <div class="hero-pick" role="radiogroup" aria-label="背景のイラスト">
       ${Stage.HEROES.map((id) => `
         <button type="button" class="hero-pick__item${id === now ? ' is-on' : ''}"
                 role="radio" aria-checked="${id === now}"
@@ -114,18 +134,36 @@ function heroPicker() {
           <img src="${esc(Stage.heroThumb(id))}" alt="" loading="lazy" decoding="async">
         </button>`).join('')}
     </div>
-  </div>`;
+    <div class="modal__actions">
+      <button type="button" class="btn btn--outline" data-act="close">閉じる</button>
+    </div>
+  `);
+
+  // 今えらんでいる絵が画面外にあると「1枚しかない」と誤解されるので寄せておく
+  m.box.querySelector('.hero-pick__item.is-on')
+    ?.scrollIntoView({ block: 'nearest', inline: 'center' });
+
+  m.box.addEventListener('click', (ev) => {
+    if (ev.target.closest('[data-act="close"]')) { m.close(); return; }
+    const btn = ev.target.closest('[data-hero]');
+    if (!btn) return;
+    Stage.setHero(Number(btn.dataset.hero));
+    vibrate(10);
+    // 選んだら閉じる。背景が見たくて開いているので、居座らせない
+    m.close();
+    render();
+  });
 }
 
 function cheerCard() {
   const latest = (state.cheers || []).find((c) => c.author_user_id !== Store.get('user')?.id);
   return `<div class="cheer" style="margin-top:var(--sp-3)">
-    <p class="cheer__from">💌 おうちの人からのおうえん</p>
+    <p class="cheer__from">💌 おうちの人からの応援</p>
     ${latest
       ? `<p class="cheer__body">${esc(latest.body || reactionEmoji(latest.reaction))}</p>`
       : '<p class="cheer__body cheer__empty">まだメッセージはありません</p>'}
     <div style="margin-top:var(--sp-3)">
-      <a class="btn btn--soft btn--sm" href="#/messages">ぜんぶ見る</a>
+      <a class="btn btn--soft btn--sm" href="#/messages">全部見る</a>
     </div>
   </div>`;
 }
@@ -145,7 +183,7 @@ function rewardCard() {
     <p class="card__title">🏆 ごほうび</p>
     <p style="font-weight:800">${esc(next.icon)} ${esc(next.title)}</p>
     <p style="color:var(--text-sub);font-size:var(--fs-sm);margin-bottom:var(--sp-2)">
-      ${left > 0 ? `あと ${left} ポイント！` : 'こうかんできるよ！'}
+      ${left > 0 ? `あと ${left} ポイント！` : '交換できるよ！'}
     </p>
     ${progressBar(next.cost_points ? (balance / next.cost_points) * 100 : 100)}
     <p style="text-align:right;font-size:var(--fs-xs);color:var(--text-sub);margin-top:4px">
@@ -159,7 +197,7 @@ function badgeCard() {
   const have = new Set((state.badges || []).map((b) => b.badge_key));
   if (!have.size) return '';
   return `<div class="card" style="margin-top:var(--sp-3)">
-    <p class="card__title">🎖️ あつめたバッジ（${have.size} / ${BADGES.length}）</p>
+    <p class="card__title">🎖️ 集めたバッジ（${have.size} / ${BADGES.length}）</p>
     <div class="reward-track">
       ${BADGES.map((b) => `<span class="${have.has(b.key) ? '' : 'off'}"
         title="${esc(b.name)}：${esc(b.desc)}">${b.icon}</span>`).join('')}
@@ -318,13 +356,9 @@ export default {
     root = el;
     state = { loading: true };
 
-    // 背景イラストの切り替え。委譲にしているので再描画しても付け直さなくてよい
+    // 背景えらびの入口。委譲にしているので再描画しても付け直さなくてよい
     onPick = (ev) => {
-      const btn = ev.target.closest('[data-hero]');
-      if (!btn) return;
-      Stage.setHero(Number(btn.dataset.hero));
-      vibrate(10);
-      render();
+      if (ev.target.closest('[data-act="pick-hero"]')) openHeroPicker();
     };
     root.addEventListener('click', onPick);
 

@@ -55,18 +55,18 @@ function render() {
 
   root.innerHTML = `
     <div class="page-head">
-      <h1>${kid ? 'おうえん' : '応援メッセージ'}</h1>
+      <h1>${kid ? '応援' : '応援メッセージ'}</h1>
     </div>
 
     <div class="card" style="margin-bottom:var(--sp-4)">
-      <p class="card__title">${kid ? 'ありがとうを おくる' : 'メッセージを送る'}</p>
+      <p class="card__title">${kid ? 'ありがとうを送る' : 'メッセージを送る'}</p>
       <div class="chips" style="margin-bottom:var(--sp-3)">
         ${REACTIONS.map((r) => `<button class="chip" data-react="${r.key}"
           style="font-size:22px;min-height:48px;min-width:48px">${r.emoji}</button>`).join('')}
       </div>
       <textarea class="textarea" data-body
         placeholder="${kid ? 'ありがとう！ など' : '例：きのうのダンス、かっこよかったよ！'}"></textarea>
-      <button class="btn btn--primary btn--block" data-act="send" style="margin-top:var(--sp-2)">おくる</button>
+      <button class="btn btn--primary btn--block" data-act="send" style="margin-top:var(--sp-2)">送る</button>
     </div>
 
     ${state.cheers.length === 0
@@ -93,7 +93,7 @@ function render() {
 
 async function send(body, reaction) {
   const text = (body || '').trim();
-  if (!text && !reaction) { toast('メッセージかスタンプをえらんでください'); return; }
+  if (!text && !reaction) { toast('メッセージかスタンプを選んでください'); return; }
   try {
     const row = await db.addCheer({
       // 応援は「今日の練習」に紐づける。なければ最新の目標に紐づける

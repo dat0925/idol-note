@@ -19,9 +19,11 @@
 
 import * as LS from './../storage.js';
 
-// 背景イラストは3種類。娘が気分で選べるようにしてある。
+// 背景イラストの枚数。娘が気分で選べるようにしてある。
 // ファイルは tools/build-hero.py が書き出す（assets/README.md 参照）。
-export const HEROES = [1, 2, 3];
+// ★イラストを増やしたら、ここの数だけを直す。
+const HERO_COUNT = 3;
+export const HEROES = Array.from({ length: HERO_COUNT }, (_, i) => i + 1);
 const heroSrc = (id) => `./assets/idol-hero-${id}.webp`;
 export const heroThumb = (id) => `./assets/idol-hero-${id}-thumb.webp`;
 
@@ -154,7 +156,7 @@ export function mount() {
   document.body.insertBefore(el, document.body.firstChild);
 
   heroLayer = el.querySelector('.stage__hero');
-  setHero(LS.getHeroId());
+  setHero(currentHero());
 
   if (reduced) return;   // 動かさない設定なら、ここで終わり（静止した装飾として残る）
 
@@ -211,10 +213,15 @@ export function setHero(id) {
   next.addEventListener('error', () => {
     heroLayer?.classList.add('is-missing');
   }, { once: true });
-  next.src = heroSrc(LS.getHeroId());
+  next.src = heroSrc(currentHero());
 }
 
-/** いま選ばれている番号 */
+/**
+ * いま選ばれている番号。
+ * イラストを減らしたあとでも範囲外にならないよう、ここで丸める
+ * （枚数を知っているのはこのファイルだけ）。
+ */
 export function currentHero() {
-  return LS.getHeroId();
+  const n = LS.getHeroId();
+  return n >= 1 && n <= HERO_COUNT ? n : 1;
 }

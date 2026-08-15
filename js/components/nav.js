@@ -8,10 +8,12 @@
 import * as Store from './../store.js';
 import { esc } from './../ui.js';
 
+// ★こどもモードの文言は小学5年生を基準にする（漢字を使う）。
+//   ひらがなに開きすぎると、かえって読みにくく子ども扱いされている感じになる。
 const KID_NAV = [
   { path: '/home',     icon: '🏠', label: 'ホーム' },
-  { path: '/practice', icon: '✏️', label: 'れんしゅう' },
-  { path: '/goals',    icon: '🎯', label: 'もくひょう' },
+  { path: '/practice', icon: '✏️', label: '練習' },
+  { path: '/goals',    icon: '🎯', label: '目標' },
   { path: '/album',    icon: '📷', label: 'アルバム' },
 ];
 

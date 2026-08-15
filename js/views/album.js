@@ -15,7 +15,7 @@ let state = { entries: [], urls: {}, filter: 'all', loading: true };
 
 const KINDS = {
   diary:       { icon: '📔', label: 'できたこと' },
-  photo:       { icon: '📷', label: 'しゃしん' },
+  photo:       { icon: '📷', label: '写真' },
   achievement: { icon: '🏅', label: 'できるようになった' },
   pr:          { icon: '📝', label: '自己PR' },
   video:       { icon: '🎥', label: 'どうが' },
@@ -53,7 +53,7 @@ function render() {
   root.innerHTML = `
     <div class="page-head">
       <h1>${kid ? 'アルバム' : '成長の記録'}</h1>
-      <button class="btn btn--primary btn--sm" data-act="new">＋ ${kid ? 'きろくする' : '追加'}</button>
+      <button class="btn btn--primary btn--sm" data-act="new">＋ ${kid ? '記録する' : '追加'}</button>
     </div>
 
     <div class="chips" style="margin-bottom:var(--sp-4)">

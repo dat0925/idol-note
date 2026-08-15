@@ -69,20 +69,31 @@
 .mission__note { font-size: var(--fs-sm); color: #8a6070; }
 
 /* =====================================================================
-   はいけいをえらぶ（背景イラストのピッカー）
+   背景を選ぶ（モーダル内の横スクロール）
    ・自分で選べると「自分の画面」になる。やる気の下地になるので本人に選ばせる
-   ・9歳が押すので的は大きく（56px 以上）
+   ・一覧をホームに常設しない。スマホだと選択肢で画面が埋まり、
+     肝心の背景が見えなくなるため、モーダルに追い出してある
+   ・枚数が増えても崩れないよう、グリッドではなく横スクロールにする
    ===================================================================== */
 .hero-pick {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
   gap: var(--sp-3);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;   /* 端まで来ても背面が動かない */
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--sp-2);
 }
 .hero-pick__item {
   /* button の既定を消す */
   appearance: none;
   padding: 0;
   cursor: pointer;
+
+  /* 2枚と少しが見える幅にして「横に続く」と気づけるようにする */
+  flex: 0 0 auto;
+  width: min(42%, 150px);
+  scroll-snap-align: center;
 
   aspect-ratio: 1 / 1;
   min-height: var(--tap);

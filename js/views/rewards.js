@@ -14,7 +14,7 @@ let unsub = [];
 let state = { rewards: [], points: { balance_points: 0 }, loading: true };
 
 const STATUS_LABEL = {
-  open: 'まだ', requested: 'リクエスト中', redeemed: 'こうかんずみ', expired: 'おわり',
+  open: 'まだ', requested: 'リクエスト中', redeemed: '交換ずみ', expired: '終わり',
 };
 
 async function load() {
@@ -78,7 +78,7 @@ function card(r, balance, isParent) {
     <div style="margin-top:var(--sp-3)">
       ${progressBar(r.cost_points ? (balance / r.cost_points) * 100 : 100)}
       <p style="text-align:right;font-size:var(--fs-xs);color:var(--text-sub);margin-top:4px">
-        ${done ? 'こうかんずみ'
+        ${done ? '交換ずみ'
           // 「220 / 100 pt」のように必要ポイントを超えて見えると混乱するので上限で丸める
           : `${Math.min(balance, r.cost_points)} / ${r.cost_points} pt`}
         ${reached || done ? '' : ` ・ あと${r.cost_points - balance}pt`}
@@ -88,7 +88,7 @@ function card(r, balance, isParent) {
     <div class="row" style="justify-content:flex-end;margin-top:var(--sp-3)">
       ${!done && r.status === 'open' && reached
         ? `<button class="btn btn--primary btn--sm" data-act="request" data-id="${esc(r.id)}">
-             こうかんしたい！</button>` : ''}
+             交換したい！</button>` : ''}
       ${isParent && r.status === 'requested'
         ? `<button class="btn btn--primary btn--sm" data-act="redeem" data-id="${esc(r.id)}">
              ✅ 承認する</button>` : ''}
@@ -171,7 +171,7 @@ export default {
           if (!ok) return;
           await db.redeemReward(r.id);
           confetti(100);
-          toast('こうかん成立！ 🎉', 'ok');
+          toast('交換成立！ 🎉', 'ok');
           await load();
         } else if (act === 'delete' && r) {
           const ok = await confirmDialog('このごほうびを削除しますか？', { okLabel: '削除する', danger: true });

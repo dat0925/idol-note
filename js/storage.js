@@ -133,13 +133,14 @@ export function setMode(mode) {
 // 端末ごとの見た目の好みなので mode と同じく localStorage に置く。
 // サーバーに置くと、選ぶたびに通信が要るうえ、
 // 家族で1つの値を取り合うことになる（親と娘で好みが違う）。
-const HERO_MAX = 3;
+// ★上限は持たない。枚数を知っているのは stage.js だけ（HERO_COUNT）。
+//   ここにも枚数を書くと、イラストを増やしたとき片方だけ直して壊れる。
 export function getHeroId() {
   const n = Number(safeGet('idol:hero'));
-  return Number.isInteger(n) && n >= 1 && n <= HERO_MAX ? n : 1;
+  return Number.isInteger(n) && n >= 1 ? n : 1;
 }
 export function setHeroId(n) {
-  const v = Number.isInteger(n) && n >= 1 && n <= HERO_MAX ? n : 1;
+  const v = Number.isInteger(n) && n >= 1 ? n : 1;
   try { localStorage.setItem('idol:hero', String(v)); } catch { /* noop */ }
 }
 

@@ -131,7 +131,7 @@ async function toggleMenu(menu, minutesOverride = null) {
       const done = state.items.filter((i) => i.done).length;
       if (done === state.menus.length && state.menus.length > 0) {
         confetti(120);
-        toast('きょうのミッション、ぜんぶクリア！ 🎉', 'ok', 4000);
+        toast('今日のミッション、全部クリア！ 🎉', 'ok', 4000);
       }
     }
     refreshStreak();
@@ -165,22 +165,22 @@ function kidView() {
   return `
     <div class="mission" style="margin-bottom:var(--sp-4)">
       <div class="mission__text">
-        <p class="mission__label">${isToday ? 'きょうのミッション' : shortDate(state.date) + 'のきろく'}</p>
+        <p class="mission__label">${isToday ? '今日のミッション' : shortDate(state.date) + 'の記録'}</p>
         <p class="mission__count">${doneCount}<span style="font-size:.5em"> / ${total}</span></p>
-        <p class="mission__note">${totalMin > 0 ? 'ぜんぶで ' + minutesText(totalMin) : 'タップしてきろくしよう！'}</p>
+        <p class="mission__note">${totalMin > 0 ? '全部で ' + minutesText(totalMin) : 'タップして記録しよう！'}</p>
       </div>
       ${progressRing(total ? (doneCount / total) * 100 : 0, 92, 10)}
     </div>
 
     ${stampWeek()}
 
-    <h2 class="card__title" style="margin-top:var(--sp-5)">れんしゅうメニュー</h2>
+    <h2 class="card__title" style="margin-top:var(--sp-5)">練習メニュー</h2>
     ${total === 0
       ? emptyState('📝', 'メニューがまだありません。おとなの人にお願いしてね。')
       : `<div class="menu-grid">${state.menus.map(kidMenuCard).join('')}</div>`}
 
     <p style="text-align:center;color:var(--text-sub);font-size:var(--fs-xs);margin-top:var(--sp-4)">
-      ながおしすると、時間をかえられます
+      長押しすると、時間を変えられます
     </p>
   `;
 }

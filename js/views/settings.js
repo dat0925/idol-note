@@ -90,7 +90,7 @@ function render() {
     </div>
 
     <div class="card">
-      <p class="card__title">🔒 あんしん番号（PIN）</p>
+      <p class="card__title">🔒 安心番号（PIN）</p>
       <p style="color:var(--text-sub);font-size:var(--fs-sm);margin-bottom:var(--sp-3)">
         おとなモードに入るときの4桁の番号です。${state.hasPin ? '設定済み。' : 'まだ設定されていません。'}<br>
         これは「端末を渡したときの目隠し」です。オーディションの結果や体重は、
@@ -244,7 +244,7 @@ export default {
             if (await setupPin()) { await load(); toast('番号を設定しました', 'ok'); }
             break;
           case 'clear-pin': {
-            const ok = await confirmDialog('あんしん番号を削除しますか？（次回おとなモードに入るとき再設定を求められます）',
+            const ok = await confirmDialog('安心番号を削除しますか？（次回おとなモードに入るとき再設定を求められます）',
               { okLabel: '削除する', danger: true });
             if (!ok) break;
             await Pin.clearPin();

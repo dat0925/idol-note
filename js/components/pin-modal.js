@@ -117,15 +117,15 @@ function pinShell(title, subtitle, onComplete, footerHTML = '') {
 export async function setupPin() {
   let first = '';
   const step1 = await pinShell(
-    'あんしん番号をきめる',
+    '安心番号を決める',
     'おとなモードに入るための4けたの番号です',
     async (pin) => { first = pin; return { ok: true }; },
   );
   if (!step1) return false;
 
   const step2 = await pinShell(
-    'もういちど',
-    'かくにんのため、同じ番号をもう一度',
+    'もう一度',
+    '確認のため、同じ番号をもう一度',
     async (pin) => {
       if (pin !== first) return { ok: false, message: '番号が一致しません。最初からやり直してください' };
       await Pin.setPin(pin);
