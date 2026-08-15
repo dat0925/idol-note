@@ -10,13 +10,21 @@
 import { supabase } from './config.js';
 import * as Store from './store.js';
 import * as LS from './storage.js';
-import { jstToday } from './format.js';
+import { jstToday, friendlyError } from './format.js';
 
 const fam = () => Store.get('family')?.id;
 const uid = () => Store.get('user')?.id;
 
+/**
+ * Supabase のエラーをここで1回だけ日本語に変える。
+ * views は素の e.message を toast に流しているので、
+ * ここを通しておけば全画面が同時に直る。
+ * 生のメッセージは原因調査のためコンソールにだけ残す。
+ */
 function guard(error) {
-  if (error) throw new Error(error.message);
+  if (!error) return;
+  console.error('[db]', error.message, error);
+  throw new Error(friendlyError(error.message));
 }
 
 // =====================================================================

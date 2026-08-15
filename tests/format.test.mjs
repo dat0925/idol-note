@@ -11,7 +11,7 @@ import assert from 'node:assert/strict';
 import {
   jstToday, addDays, diffDays, weekKeys, dowJa, shortDate, longDate,
   minutesText, deadlineText, deadlineLevel, localStreak, pct, heatLevel,
-  esc, newBadges,
+  esc, newBadges, friendlyError,
 } from '../js/format.js';
 
 // ── JST の日付 ───────────────────────────────────────
@@ -159,4 +159,47 @@ test('newBadges: 獲得済みは返さない', () => {
 test('newBadges: bestStreak が current より小さくても current で判定する', () => {
   const got = newBadges({ currentStreak: 30, bestStreak: 3, totalMinutes: 0, practiceCount: 30 }, []);
   assert.ok(got.includes('streak_30'));
+});
+
+// ── エラーメッセージの日本語化 ───────────────────────
+// 生の Postgres メッセージが画面に出た事故（応援画面）の再発防止。
+test('friendlyError: 同じスタンプの二度押しを日本語で説明する', () => {
+  const raw = 'duplicate key value violates unique constraint "idol_cheer_unique_reaction_log"';
+  assert.equal(friendlyError(raw), 'そのスタンプは、もうおくってあります');
+});
+
+test('friendlyError: 内部の制約名やテーブル名を画面に漏らさない', () => {
+  const raws = [
+    'duplicate key value violates unique constraint "idol_something_key"',
+    'new row violates row-level security policy for table "idol_body_records"',
+    'permission denied for table idol_parent_pins',
+    'null value in column "title" violates not-null constraint',
+    'new row for relation "idol_goals" violates check constraint "idol_goals_period_order"',
+  ];
+  for (const raw of raws) {
+    const msg = friendlyError(raw);
+    assert.ok(!/idol_|constraint|violates|denied/i.test(msg), `漏れている: ${msg}`);
+    assert.ok(/[ぁ-んァ-ヶ一-龠]/.test(msg), `日本語になっていない: ${msg}`);
+  }
+});
+
+test('friendlyError: RLS 拒否は権限の話として伝える', () => {
+  const raw = 'new row violates row-level security policy for table "idol_body_records"';
+  assert.equal(friendlyError(raw), 'この操作をする権限がありません');
+});
+
+test('friendlyError: トリガーが日本語で投げたメッセージはそのまま通す', () => {
+  assert.equal(friendlyError('ごほうびの承認は親のみです'), 'ごほうびの承認は親のみです');
+  assert.equal(friendlyError('role の変更は親のみ可能です'), 'role の変更は親のみ可能です');
+});
+
+test('friendlyError: 空や未知の英語メッセージでも既定文言を返す', () => {
+  assert.equal(friendlyError(''), 'うまくいきませんでした');
+  assert.equal(friendlyError(null), 'うまくいきませんでした');
+  assert.equal(friendlyError('some unexpected failure'), 'うまくいきませんでした');
+});
+
+test('friendlyError: 通信断はやり直せる案内にする', () => {
+  assert.equal(friendlyError('TypeError: Failed to fetch'),
+    'つうしんできませんでした。電波を確認してください');
 });

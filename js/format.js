@@ -128,6 +128,63 @@ export function esc(s) {
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+/**
+ * DB のエラーメッセージを、そのまま画面に出せる日本語にする。
+ *
+ * ★Postgres / PostgREST の生メッセージを娘に見せない。
+ *   実際に「duplicate key value violates unique constraint
+ *   "idol_cheer_unique_reaction_log"」が応援画面に出てしまった。
+ *   怖いし、内部のテーブル名や制約名を漏らす意味もない。
+ *
+ * db.js の guard() から呼ぶので、views は素の e.message を表示してよい。
+ */
+export function friendlyError(message) {
+  const m = String(message ?? '').trim();
+  if (!m) return 'うまくいきませんでした';
+
+  // 同じスタンプを二度押した（idol_cheer_unique_reaction_log）
+  if (/idol_cheer_unique_reaction_log/.test(m)) {
+    return 'そのスタンプは、もうおくってあります';
+  }
+  // 1人1日1行（idol_practice_logs の unique）
+  if (/idol_practice_logs_subject_user_id_log_date_key|practice_logs.*unique/i.test(m)) {
+    return 'その日の記録はもうあります';
+  }
+  // 同じバッジは1回まで
+  if (/idol_earned_badges_user_id_badge_key_key/.test(m)) {
+    return 'そのバッジはすでに持っています';
+  }
+  if (/duplicate key value|unique constraint/i.test(m)) {
+    return 'おなじものがすでに登録されています';
+  }
+  // RLS で弾かれた＝権限がない
+  if (/row-level security|violates row-level security policy/i.test(m)) {
+    return 'この操作をする権限がありません';
+  }
+  if (/permission denied/i.test(m)) {
+    return 'この操作をする権限がありません';
+  }
+  if (/violates check constraint/i.test(m)) {
+    return '入力できる範囲を超えています';
+  }
+  if (/violates foreign key constraint/i.test(m)) {
+    return '関連するデータが見つかりません';
+  }
+  if (/not-null constraint/i.test(m)) {
+    return '入力がたりません';
+  }
+  if (/JWT|token is expired|invalid claim/i.test(m)) {
+    return 'ログインの有効期限が切れました。もう一度ログインしてください';
+  }
+  if (/Failed to fetch|NetworkError|network/i.test(m)) {
+    return 'つうしんできませんでした。電波を確認してください';
+  }
+  // トリガーが日本語で raise しているものはそのまま通す
+  if (/[ぁ-んァ-ヶ一-龠]/.test(m)) return m;
+
+  return 'うまくいきませんでした';
+}
+
 /** オーディションのステータス表示 */
 export const AUDITION_STATUS = {
   interested: { label: '検討中',   tag: '' },
