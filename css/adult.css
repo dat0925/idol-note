@@ -74,16 +74,49 @@
   padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm);
 }
 .tree__row:hover { background: var(--surface-2); }
-.tree__title { flex: 1; font-weight: 600; }
+.tree__ico { flex: none; }
+/* ★min-width: 0 が要る。これが無いと min-content 幅（日本語は1文字）より縮まず、
+   潰れて縦書きのようになる。flex: 1 だけでは足りない */
+.tree__title { flex: 1; min-width: 0; font-weight: 600; }
 .tree__title.is-done { text-decoration: line-through; color: var(--text-sub); }
+.tree__meta { display: flex; align-items: center; gap: var(--sp-3); flex: none; }
+.tree__actions { display: flex; align-items: center; gap: var(--sp-1); flex: none; }
 .tree__bar { width: 96px; }
 .tree__pct { font-size: var(--fs-xs); color: var(--text-sub); width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
-.tree--big > .tree__row { font-size: var(--fs-lg); font-weight: 800; }
+/* ★.tree--big は .tree__row 自身に付く（子ではない）。
+   子孫セレクタで書くと一致せず、大目標だけ大きくする指定が死ぬ */
+.tree__row.tree--big { font-size: var(--fs-lg); font-weight: 800; }
+
+/* スマホ幅では1行に収まらないので2段に組み替える。
+     1段目: アイコン ＋ タイトル ＋ 操作ボタン
+     2段目: 期限タグ ＋ 進捗バー ＋ ％（横幅いっぱい）
+   横に並べたままだと、幅の決まった兄弟にタイトルが押し潰される */
+@media (max-width: 700px) {
+  .tree__row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "ico title actions" "meta meta meta";
+    column-gap: var(--sp-2); row-gap: var(--sp-1);
+    padding: var(--sp-2);
+  }
+  .tree__ico     { grid-area: ico; }
+  .tree__title   { grid-area: title; }
+  .tree__meta    { grid-area: meta; gap: var(--sp-2); }
+  .tree__actions { grid-area: actions; }
+  /* バーは残り幅を使う。％と期限は固定なので、狭い画面でも意味が消えない */
+  .tree__bar { flex: 1; width: auto; min-width: 40px; }
+  /* アイコンボタンは正方形にして、4つ並べても押し分けられる大きさを保つ */
+  .tree__actions .btn--sm { width: 38px; min-height: 38px; padding: 0; }
+}
 
 /* =====================================================================
    カレンダー
    ===================================================================== */
-.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
+/* ★minmax(0, 1fr) にしている理由:
+   1fr は minmax(auto, 1fr) と同じで、セルの min-content 幅より縮まない。
+   予定名（nowrap）の長い日があると、その曜日の列だけ横に膨らみ、
+   7列目（土）が画面外に押し出されて消える事故が実際に起きた。 */
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
 .cal__dow { background: var(--surface-2); text-align: center; padding: var(--sp-2) 0; font-size: var(--fs-xs); font-weight: 700; color: var(--text-sub); }
 .cal__day { background: var(--surface); min-height: 88px; padding: var(--sp-2); font-size: var(--fs-xs); }
 .cal__day--out { background: var(--surface-2); color: var(--text-sub); }
@@ -91,6 +124,15 @@
 .cal__num { font-weight: 700; margin-bottom: 2px; }
 .cal__ev { display: block; border-radius: 3px; padding: 1px 4px; margin-bottom: 2px; color: #fff; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cal__dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); margin-right: 3px; }
+
+/* スマホ幅では1マスが約45pxしかなく、予定名を出しても2文字で切れて読めない。
+   色帯だけにして「その日は何かある」を伝え、名前は日付をタップした
+   日別パネル（dayPanel）で読ませる */
+@media (max-width: 700px) {
+  .cal__day { min-height: 62px; padding: 4px 3px; }
+  /* .cal の中だけに効かせる（凡例の見本は .cal の外にあるので触らない） */
+  .cal .cal__ev { height: 5px; padding: 0; margin-bottom: 3px; font-size: 0; line-height: 0; }
+}
 
 /* =====================================================================
    折れ線グラフ（体重・身長）

@@ -106,22 +106,31 @@ function adultView() {
   `;
 }
 
+// 1行 = アイコン / タイトル / メタ（期限・進捗）/ 操作ボタン の4ブロック。
+// ★メタと操作をそれぞれ1つの入れ物にまとめてあるのは、
+//   スマホ幅で「タイトル＋操作」「メタ」の2段に組み替えるため（adult.css）。
+//   平らに並べたままだと、幅の決まった兄弟（バー96px・％34px・ボタン4個）に
+//   押されてタイトルが1文字幅まで潰れ、縦書きのようになる事故が実際に起きた。
 function treeNode(g, depth) {
   const kids = childrenOf(g.id);
   const next = CHILD_LEVEL[g.level];
   return `<div class="${depth === 0 ? 'card' : 'tree__node'}" style="${depth === 0 ? 'margin-bottom:var(--sp-3)' : ''}">
     <div class="tree__row ${depth === 0 ? 'tree--big' : ''}">
-      <span>${esc(g.icon)}</span>
+      <span class="tree__ico">${esc(g.icon)}</span>
       <span class="tree__title ${g.status === 'done' ? 'is-done' : ''}">${esc(g.title)}</span>
-      ${g.period_end ? `<span class="tag">〜${esc(g.period_end)}</span>` : ''}
-      <span class="tree__bar">${progressBar(g.progress_pct)}</span>
-      <span class="tree__pct">${g.progress_pct}%</span>
-      <button class="btn btn--ghost btn--sm" data-act="toggle-done" data-id="${esc(g.id)}"
-              title="完了/未完了">${g.status === 'done' ? '↩︎' : '✓'}</button>
-      <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${esc(g.id)}" title="編集" aria-label="編集">${icon('pencil', { size: 18 })}</button>
-      ${next ? `<button class="btn btn--ghost btn--sm" data-act="new"
-                 data-level="${next}" data-parent="${esc(g.id)}" title="下位目標を追加">＋</button>` : ''}
-      <button class="btn btn--ghost btn--sm" data-act="delete" data-id="${esc(g.id)}" title="削除" aria-label="削除">${icon('trash', { size: 18 })}</button>
+      <span class="tree__meta">
+        ${g.period_end ? `<span class="tag">〜${esc(g.period_end)}</span>` : ''}
+        <span class="tree__bar">${progressBar(g.progress_pct)}</span>
+        <span class="tree__pct">${g.progress_pct}%</span>
+      </span>
+      <span class="tree__actions">
+        <button class="btn btn--ghost btn--sm" data-act="toggle-done" data-id="${esc(g.id)}"
+                title="完了/未完了" aria-label="完了/未完了">${g.status === 'done' ? '↩︎' : '✓'}</button>
+        <button class="btn btn--ghost btn--sm" data-act="edit" data-id="${esc(g.id)}" title="編集" aria-label="編集">${icon('pencil', { size: 18 })}</button>
+        ${next ? `<button class="btn btn--ghost btn--sm" data-act="new"
+                   data-level="${next}" data-parent="${esc(g.id)}" title="下位目標を追加" aria-label="下位目標を追加">＋</button>` : ''}
+        <button class="btn btn--ghost btn--sm" data-act="delete" data-id="${esc(g.id)}" title="削除" aria-label="削除">${icon('trash', { size: 18 })}</button>
+      </span>
     </div>
     ${kids.map((k) => treeNode(k, depth + 1)).join('')}
   </div>`;
