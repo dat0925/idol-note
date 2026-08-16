@@ -86,8 +86,10 @@
   align-items: flex-end;
   justify-content: center;
   /* ★下端に置くと、ボトムナビと最後のカードに半分隠れて「半分しか見えない」。
-     ナビの高さぶん＋余白を空けて、絵の全体が見える位置まで持ち上げる。 */
-  padding-bottom: calc(var(--nav-h) + 6vh);
+     ナビの高さぶん＋余白を空けて、絵の全体が見える位置まで持ち上げる。
+     サイドメニュー表示のときはナビが下に無いので --nav-safe は 0 になり、
+     絵がそのぶん下まで使える。 */
+  padding-bottom: calc(var(--nav-safe) + 6vh);
 }
 .stage__hero img {
   width: min(86vw, 460px);
@@ -155,9 +157,13 @@
   .stage__hero img { opacity: .42; }
 }
 
-/* PCでは本文が中央の1カラムに収まるので、イラストを右に逃がして
-   カードと重ならない場所に立たせる（スマホでは中央のまま） */
-@media (min-width: 900px) {
+/* サイドメニューに切り替わる幅では、本文が右寄りの1カラムに収まる。
+   イラストを右に逃がして、カードと重ならない場所に立たせる
+   （スマホでは中央のまま）。
+   ★しきい値は style.css のサイドバー切り替えと必ず揃えること。
+     ずれると「ナビは横に出たのに絵は中央のまま」という中途半端な幅ができる。 */
+@media (min-width: 768px) {
   .stage__hero { justify-content: flex-end; padding-right: 4vw; }
-  .stage__hero img { width: min(38vw, 520px); opacity: .82; }
+  /* カードの裏に回り込まない位置なので、ここは濃いめに出してよい */
+  .stage__hero img { width: min(42vw, 520px); opacity: .86; }
 }

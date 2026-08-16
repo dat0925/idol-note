@@ -22,6 +22,14 @@
   --accent: #6c63c7;
   --accent-ink: #ffffff;
   --accent-soft: #eceaf9;
+
+  /* タイムラインの段（濃 → 淡 ＝ 最終目標 → 行動目標）。
+     こどもモードのピンクと同じ考え方で、こちらは紫の濃淡にする。
+     明度が単調に上がる並びなので、色が見分けにくい人にも順序が伝わる。 */
+  --lv-0: #35306f;
+  --lv-1: #4c44a0;
+  --lv-2: #6c63c7;
+  --lv-3: #9a93da;
 }
 
 [data-mode="adult"] .btn { border-radius: var(--r-md); }
@@ -68,14 +76,21 @@
 /* =====================================================================
    目標ツリー
    ===================================================================== */
+.tree__root + .tree__root { margin-top: var(--sp-4); padding-top: var(--sp-3); border-top: 1px solid var(--border); }
 .tree__node { border-left: 2px solid var(--border); padding-left: var(--sp-3); margin-left: var(--sp-2); }
 .tree__row {
   display: flex; align-items: center; gap: var(--sp-3);
   padding: var(--sp-2) var(--sp-3); border-radius: var(--r-sm);
 }
 .tree__row:hover { background: var(--surface-2); }
-.tree__title { flex: 1; font-weight: 600; }
+.tree__title { flex: 1; min-width: 0; font-weight: 600; }
 .tree__title.is-done { text-decoration: line-through; color: var(--text-sub); }
+/* 段の名前（最終目標/中間目標/…）。インデントだけに頼らせない */
+.tree__lv {
+  margin-left: .5em; padding: 1px 6px; border-radius: var(--r-pill);
+  background: var(--surface-2); color: var(--text-sub);
+  font-size: var(--fs-xs); font-weight: 700; white-space: nowrap;
+}
 .tree__bar { width: 96px; }
 .tree__pct { font-size: var(--fs-xs); color: var(--text-sub); width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
 .tree--big > .tree__row { font-size: var(--fs-lg); font-weight: 800; }

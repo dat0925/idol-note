@@ -12,6 +12,7 @@ import * as Router from './../router.js';
 import { pendingCount, pullDelta } from './../sync.js';
 import { setupPin } from './../components/pin-modal.js';
 import { esc, toast, skeleton, modal, confirmDialog, emptyState } from './../ui.js';
+import { longDate, ageText, jstToday } from './../format.js';
 
 let root = null;
 let state = { menus: [], inviteCode: null, hasPin: false, loading: true };
@@ -52,9 +53,19 @@ function render() {
       <p style="margin-bottom:var(--sp-3)"><b>${esc(family?.name || '')}</b></p>
       <ul>${members.map((m) => `<li class="row row--between"
             style="padding:var(--sp-2) 0;border-bottom:1px solid var(--border)">
-        <span>${m.role === 'parent' ? '👩' : '🎀'} ${esc(m.nickname || m.display_name)}
-          ${m.is_talent ? '<span class="tag tag--info">アイドル志望</span>' : ''}</span>
-        <span class="tag">${m.role === 'parent' ? '親' : 'こども'}</span>
+        <span style="min-width:0">
+          ${m.role === 'parent' ? '👩' : '🎀'} ${esc(m.nickname || m.display_name)}
+          ${m.is_talent ? '<span class="tag tag--info">目標を追う本人</span>' : ''}
+          ${m.birthday
+            ? `<br><small style="color:var(--text-sub)">
+                 ${esc(longDate(m.birthday))}生まれ ・ ${esc(ageText(m.birthday))}</small>`
+            : '<br><small style="color:var(--text-sub)">生年月日が未設定</small>'}
+        </span>
+        <span class="row" style="flex-wrap:nowrap">
+          <span class="tag">${m.role === 'parent' ? '親' : 'こども'}</span>
+          <button class="btn btn--ghost btn--sm" data-act="edit-member" data-id="${esc(m.id)}"
+                  aria-label="${esc(m.nickname || m.display_name)}の情報を編集">${icon('pencil', { size: 18 })}</button>
+        </span>
       </li>`).join('')}</ul>
 
       <div class="row" style="margin-top:var(--sp-3)">
@@ -122,6 +133,70 @@ function render() {
       <button class="btn btn--danger btn--sm" data-act="signout" style="margin-top:var(--sp-3)">ログアウト</button>
     </div>
   `;
+}
+
+/**
+ * 家族メンバーの編集（呼び名・生年月日・本人フラグ）。
+ *
+ * ★生年月日をここに置く理由:
+ *   目標の期日は未来なので「本番のときに何歳か」が出せると、
+ *   その年齢に見合う目標かどうかを親が判断できる。
+ *   個人情報ではあるが家族内で共有する情報なので、
+ *   合否や体重のように別テーブルへ分ける必要はない
+ *   （子が自分の誕生日を見られて困ることはない）。
+ */
+function memberModal(member) {
+  const m = modal(`
+    <p class="modal__title">${esc(member.nickname || member.display_name)}の情報</p>
+    <form data-member-form>
+      <label class="field">
+        <span class="field__label">呼び名</span>
+        <input class="input" name="nickname" value="${esc(member.nickname || '')}"
+               placeholder="${esc(member.display_name || '')}" maxlength="20">
+      </label>
+      <label class="field">
+        <span class="field__label">生年月日</span>
+        <input class="input" type="date" name="birthday"
+               value="${esc(member.birthday || '')}" max="${esc(jstToday())}">
+        <span class="field__hint">目標の期日に「そのとき何歳か」を出すのに使います。</span>
+      </label>
+      <label class="field">
+        <span class="field__label">
+          <input type="checkbox" name="is_talent" ${member.is_talent ? 'checked' : ''}>
+          この人の目標・練習を記録する（本人）
+        </span>
+        <span class="field__hint">家族で1人だけ。付け替えると、もう1人からは外れます。</span>
+      </label>
+      <p class="pin-error" data-error></p>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--outline" data-act="cancel">やめる</button>
+        <button type="submit" class="btn btn--primary">保存</button>
+      </div>
+    </form>
+  `);
+
+  m.box.querySelector('[data-act="cancel"]').onclick = () => m.close();
+  m.box.querySelector('[data-member-form]').onsubmit = async (ev) => {
+    ev.preventDefault();
+    const fd = Object.fromEntries(new FormData(ev.target));
+    const err = m.box.querySelector('[data-error]');
+    // 未来の生年月日は弾く（date の max だけでは手入力を防げない端末がある）
+    if (fd.birthday && fd.birthday > jstToday()) {
+      err.textContent = '生年月日が未来になっています'; return;
+    }
+    try {
+      await Auth.updateMember(member.id, {
+        nickname: fd.nickname.trim(),
+        birthday: fd.birthday || null,
+        is_talent: !!fd.is_talent,
+      });
+      m.close();
+      render();
+      toast('保存しました', 'ok');
+    } catch (e) {
+      err.textContent = e.message || '保存できませんでした';
+    }
+  };
 }
 
 function menuModal(menu) {
@@ -228,6 +303,11 @@ export default {
             state.inviteCode = await Auth.rotateInviteCode();
             render();
             toast('新しいコードを発行しました', 'ok');
+            break;
+          }
+          case 'edit-member': {
+            const target = Store.get('members').find((x) => x.id === btn.dataset.id);
+            if (target) memberModal(target);
             break;
           }
           case 'new-menu': menuModal(null); break;

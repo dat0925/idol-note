@@ -12,6 +12,8 @@ import {
   jstToday, addDays, diffDays, weekKeys, dowJa, shortDate, longDate,
   minutesText, deadlineText, deadlineLevel, localStreak, pct, heatLevel,
   esc, newBadges, friendlyError,
+  addMonths, monthStart, monthEnd, ageAt, ageText,
+  levelRank, levelLabel, timelineRange, monthTicks, barSpan, todayPct,
 } from '../js/format.js';
 
 // ── JST の日付 ───────────────────────────────────────
@@ -202,4 +204,137 @@ test('friendlyError: 空や未知の英語メッセージでも既定文言を�
 test('friendlyError: 通信断はやり直せる案内にする', () => {
   assert.equal(friendlyError('TypeError: Failed to fetch'),
     'つうしんできませんでした。電波を確認してください');
+});
+
+// ── 月の計算 ─────────────────────────────────────────
+test('addMonths: 月末は行き過ぎない（1/31 + 1か月 は 2/28）', () => {
+  assert.equal(addMonths('2026-01-31', 1), '2026-02-28');
+  assert.equal(addMonths('2028-01-31', 1), '2028-02-29');   // うるう年
+  assert.equal(addMonths('2026-08-16', 4), '2026-12-16');
+  assert.equal(addMonths('2026-12-26', 1), '2027-01-26');   // 年またぎ
+  assert.equal(addMonths('2026-01-15', -1), '2025-12-15');
+});
+
+test('monthStart / monthEnd', () => {
+  assert.equal(monthStart('2026-08-16'), '2026-08-01');
+  assert.equal(monthEnd('2026-08-16'), '2026-08-31');
+  assert.equal(monthEnd('2026-09-01'), '2026-09-30');
+  assert.equal(monthEnd('2026-02-10'), '2026-02-28');
+  assert.equal(monthEnd('2028-02-10'), '2028-02-29');
+  assert.equal(monthEnd('2026-12-26'), '2026-12-31');
+});
+
+// ── 年齢 ─────────────────────────────────────────────
+test('ageAt: 誕生日が来ていない月は繰り上げない', () => {
+  // 2016-10-06 生まれ
+  assert.deepEqual(ageAt('2016-10-06', '2026-10-05'), { years: 9, months: 11 });
+  assert.deepEqual(ageAt('2016-10-06', '2026-10-06'), { years: 10, months: 0 });
+  assert.deepEqual(ageAt('2016-10-06', '2026-12-26'), { years: 10, months: 2 });
+});
+
+test('ageAt: 未来の日付でも計算できる（目標の期日で使う）', () => {
+  assert.deepEqual(ageAt('2016-10-06', '2030-04-06'), { years: 13, months: 6 });
+});
+
+test('ageAt: 不正な入力は null', () => {
+  assert.equal(ageAt(null, '2026-08-16'), null);
+  assert.equal(ageAt('2016-10-06', null), null);
+  assert.equal(ageAt('2016-10-06', '2016-10-05'), null);   // 生まれる前
+  assert.equal(ageAt('', '2026-08-16'), null);
+});
+
+test('ageText: ちょうどの年は「か月」を出さない', () => {
+  assert.equal(ageText('2016-10-06', '2026-10-06'), '10歳');
+  assert.equal(ageText('2016-10-06', '2026-12-26'), '10歳2か月');
+  assert.equal(ageText(null, '2026-12-26'), '');
+});
+
+// ── 目標の階層 ───────────────────────────────────────
+test('levelRank: 未知の level は行動目標あつかい（色が消えない）', () => {
+  assert.equal(levelRank('big'), 0);
+  assert.equal(levelRank('milestone'), 1);
+  assert.equal(levelRank('month'), 2);
+  assert.equal(levelRank('week'), 2);      // 旧データ
+  assert.equal(levelRank('task'), 3);
+  assert.equal(levelRank('なにこれ'), 3);
+});
+
+test('levelLabel: こどもモードは言い方を変える', () => {
+  assert.equal(levelLabel('big'), '最終目標');
+  assert.equal(levelLabel('big', 'kid'), '大きな目標');
+  assert.equal(levelLabel('task', 'kid'), 'やること');
+  assert.equal(levelLabel('存在しない'), '');
+});
+
+// ── タイムライン ─────────────────────────────────────
+test('timelineRange: 月の頭から月末までに丸める', () => {
+  const r = timelineRange([
+    { period_start: '2026-08-16', period_end: '2026-08-31' },
+    { period_start: '2026-12-01', period_end: '2026-12-26' },
+  ], '2026-08-16');
+  assert.equal(r.start, '2026-08-01');
+  assert.equal(r.end, '2026-12-31');
+  assert.equal(r.days, 153);
+});
+
+test('timelineRange: 今日が期間の外でも必ず含める（いまここの線を出すため）', () => {
+  const r = timelineRange([{ period_start: '2026-01-05', period_end: '2026-01-20' }], '2026-08-16');
+  assert.equal(r.start, '2026-01-01');
+  assert.equal(r.end, '2026-08-31');
+});
+
+test('timelineRange: 期日を持つ目標が無ければ null', () => {
+  assert.equal(timelineRange([], '2026-08-16'), null);
+  assert.equal(timelineRange([{ title: 'ひづけなし' }], '2026-08-16'), null);
+});
+
+test('monthTicks: 月ごとに割れ、幅の合計が100%になる', () => {
+  const r = timelineRange([{ period_start: '2026-08-01', period_end: '2026-12-31' }], '2026-08-16');
+  const ticks = monthTicks(r);
+  assert.equal(ticks.length, 5);
+  assert.deepEqual(ticks.map((t) => t.label), ['8月', '9月', '10月', '11月', '12月']);
+  assert.equal(ticks[0].leftPct, 0);
+  const total = ticks.reduce((s, t) => s + t.widthPct, 0);
+  assert.ok(Math.abs(total - 100) < 0.001, `合計 ${total}`);
+});
+
+test('monthTicks: 1月は年を添える（年またぎで迷子にならない）', () => {
+  const r = timelineRange([{ period_start: '2026-12-01', period_end: '2027-01-31' }], '2026-12-01');
+  assert.deepEqual(monthTicks(r).map((t) => t.label), ['12月', '2027年1月']);
+});
+
+test('barSpan: 範囲を1日ぶんずつ数える', () => {
+  const r = timelineRange([{ period_start: '2026-08-01', period_end: '2026-08-31' }], '2026-08-01');
+  assert.equal(r.days, 31);
+  const s = barSpan('2026-08-01', '2026-08-31', r);
+  assert.equal(s.leftPct, 0);
+  assert.equal(s.widthPct, 100);
+});
+
+test('barSpan: はみ出す分は切り詰める', () => {
+  const r = timelineRange([{ period_start: '2026-08-01', period_end: '2026-08-31' }], '2026-08-01');
+  const s = barSpan('2026-07-01', '2026-09-30', r);
+  assert.equal(s.leftPct, 0);
+  assert.equal(s.widthPct, 100);
+});
+
+test('barSpan: 期日だけ／開始だけでも描ける（幅は最低1日）', () => {
+  const r = timelineRange([{ period_start: '2026-08-01', period_end: '2026-08-31' }], '2026-08-01');
+  const only = barSpan(null, '2026-08-16', r);
+  assert.ok(only.widthPct > 0);
+  assert.ok(Math.abs(only.leftPct - (15 / 31) * 100) < 0.001);
+});
+
+test('barSpan: 範囲外なら null（描かない）', () => {
+  const r = timelineRange([{ period_start: '2026-08-01', period_end: '2026-08-31' }], '2026-08-01');
+  assert.equal(barSpan('2026-09-01', '2026-09-30', r), null);
+  assert.equal(barSpan(null, null, r), null);
+  assert.equal(barSpan('2026-08-01', '2026-08-31', null), null);
+});
+
+test('todayPct: 範囲外なら線を出さない', () => {
+  const r = timelineRange([{ period_start: '2026-08-01', period_end: '2026-08-31' }], '2026-08-16');
+  assert.ok(Math.abs(todayPct(r, '2026-08-16') - (15 / 31) * 100) < 0.001);
+  assert.equal(todayPct(r, '2026-07-31'), null);
+  assert.equal(todayPct(null, '2026-08-16'), null);
 });

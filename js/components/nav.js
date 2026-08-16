@@ -21,6 +21,9 @@ const KID_NAV = [
   // ★応援は「場所」なのでナビに置く。未読バッジが付くのもここ。
   //   これで5つ。390px の画面ではこれが上限で、6つ目を足すとラベルが潰れる。
   { path: '/messages', icon: 'mail',   label: '応援', badge: 'unreadCheers' },
+  // ★6つ目。横に並べるボトムナビでは潰れるので出せないが、
+  //   縦に並ぶサイドメニューには入る（renderSide だけが使う）。
+  { path: '/rewards',  icon: 'gift',   label: 'ごほうび', sideOnly: true },
 ];
 
 const ADULT_NAV = [
@@ -36,11 +39,13 @@ const ADULT_NAV = [
   { path: '/settings',  icon: 'settings', label: '設定',           secure: true },
 ];
 
-/** ボトムナビ（スマホ、およびこどもモードのPC） */
+/** ボトムナビ（768px 未満＝スマホ幅のみ。それ以上は CSS で隠してサイドに出す） */
 export function renderBottom(root) {
   const mode = Store.get('mode');
   const route = Store.get('route');
-  const items = mode === 'kid' ? KID_NAV : ADULT_NAV.filter((i) => !i.sep).slice(0, 5);
+  const items = (mode === 'kid' ? KID_NAV : ADULT_NAV)
+    .filter((i) => !i.sep && !i.sideOnly)
+    .slice(0, 5);   // 横並びは5つが上限。6つ目からラベルが潰れる
 
   root.innerHTML = items.map((i) => {
     const n = i.badge ? (Store.get(i.badge) || 0) : 0;
@@ -57,18 +62,26 @@ export function renderBottom(root) {
   }).join('');
 }
 
-/** サイドバー（PC + おとなモードのみ表示される） */
+/**
+ * サイドメニュー（768px 以上で表示。こども/おとな両方）。
+ * ★こどもモードでも出す。iPad や PC では画面下端は指から遠く、
+ *   横幅も余っているので、メニューは左に置くほうが押しやすい。
+ */
 export function renderSide(root) {
   const route = Store.get('route');
-  root.innerHTML = ADULT_NAV.map((i) => {
+  const items = Store.get('mode') === 'kid' ? KID_NAV : ADULT_NAV;
+
+  root.innerHTML = items.map((i) => {
     if (i.sep) return '<div class="side__sep"></div>';
+    const n = i.badge ? (Store.get(i.badge) || 0) : 0;
     return `<a class="side__item" href="#${i.path}"
               ${route === i.path ? 'aria-current="page"' : ''}>
       <span class="ico">
         ${icon(i.icon, { size: 20 })}
-        ${(i.badge && Store.get(i.badge)) ? `<span class="nav-badge">${Store.get(i.badge) > 9 ? '9+' : Store.get(i.badge)}</span>` : ''}
+        ${n > 0 ? `<span class="nav-badge">${n > 9 ? '9+' : n}</span>` : ''}
       </span>
       <span>${esc(i.label)}</span>
+      ${n > 0 ? `<span class="sr-only">未読${n}件</span>` : ''}
       ${i.secure ? `<span class="spacer"></span><span class="ico ico--dim">${icon('lock', { size: 14 })}</span>` : ''}
     </a>`;
   }).join('');

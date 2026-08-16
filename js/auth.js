@@ -170,6 +170,61 @@ export async function updateMyProfile(patch) {
   return data;
 }
 
+// 更新してよい列だけを通す白リスト。
+// ★role / family_id は絶対に入れない。トリガー（idol_guard_member_role）で
+//   弾かれるとはいえ、UI から送れてしまう形にしておく理由がない。
+const MEMBER_FIELDS = ['display_name', 'nickname', 'birthday', 'is_talent', 'color'];
+
+/**
+ * 家族メンバーのプロフィールを更新する。
+ * 自分の行は誰でも、他人の行は親だけ更新できる（RLS）。
+ * 生年月日はここから入れる。
+ */
+export async function updateMember(memberId, patch) {
+  const safe = {};
+  for (const k of MEMBER_FIELDS) if (k in patch) safe[k] = patch[k];
+  if (!Object.keys(safe).length) return null;
+
+  // 「目標を追う本人」は家族に1人。付け替えるときは他を外す。
+  // 2人に立つと、練習記録や身体記録の主体（talentId）がどちらか分からなくなる。
+  if (safe.is_talent === true) {
+    const familyId = Store.get('family')?.id;
+    if (familyId) {
+      const { error } = await supabase
+        .from('idol_family_members')
+        .update({ is_talent: false })
+        .eq('family_id', familyId).neq('id', memberId).eq('is_talent', true);
+      if (error) throw new Error(translate(error.message));
+    }
+  }
+
+  const { data, error } = await supabase
+    .from('idol_family_members').update(safe).eq('id', memberId).select().maybeSingle();
+  if (error) throw new Error(translate(error.message));
+
+  await refreshMembers();
+  return data;
+}
+
+/** 家族全員を取り直して Store を更新する（メンバー編集のあとに呼ぶ） */
+export async function refreshMembers() {
+  const familyId = Store.get('family')?.id;
+  const myUserId = Store.get('user')?.id;
+  if (!familyId) return [];
+  const { data, error } = await supabase
+    .from('idol_family_members').select('*').eq('family_id', familyId).order('joined_at');
+  if (error) throw new Error(translate(error.message));
+
+  const list = data || [];
+  const talent = list.find((m) => m.is_talent) || list.find((m) => m.role === 'child');
+  Store.set({
+    members: list,
+    member: list.find((m) => m.user_id === myUserId) || Store.get('member'),
+    talentId: talent?.user_id || myUserId,
+  });
+  return list;
+}
+
 /** Supabase のエラーメッセージを日本語に寄せる */
 function translate(msg) {
   const m = String(msg || '');

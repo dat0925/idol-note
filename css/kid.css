@@ -12,6 +12,7 @@
   --tap: 56px;
   --nav-h: 72px;
   --header-h: 60px;
+  --sidebar-w: 244px;          /* 文字が大きいぶん、おとなより広く取る */
 
   --bg: #fff7fb;
   --surface: #ffffff;
@@ -20,9 +21,11 @@
   /* ★カードを透かしたぶん、補助文字は濃くする。
      元の #8a7684 は、真っ白なカードの上ですら約4.2 で WCAG AA（4.5）に届いていない。
      透過するとイラストの暗部の上で 2.4 まで落ちて実際に読めなくなる。
-     #5b4a54 なら 背景の上で4.71 / 白の上で8.23 と、どちらでも基準を満たす。
-     本文(#3a2b36)との明度差は残るので、見出しと補助の区別はつく。 */
-  --text-sub: #5b4a54;
+     さらに透過を .60 → .46 に上げたので #5b4a54 でも 3.75 まで落ちる。
+     #4a3b45 なら 背景の上で4.78 / 白の上で10.49 と、どちらでも AA を満たす。
+     本文(#3a2b36)との明度差は残るので、見出しと補助の区別はつく。
+     （計算方法は下の「透過とコントラスト」参照） */
+  --text-sub: #4a3b45;
   --border: #f7e2ec;
   --accent: #ff6fa5;
   --accent-ink: #ffffff;
@@ -51,66 +54,78 @@
 @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
   /* ★透過を上げるときは、同時にボカシも強める。
      ボカシは背景の細かい模様を潰すので、同じ透過率でも文字が読みやすくなる。
-     透過だけ上げると、イラストの線と文字が重なって一気に読めなくなる。 */
+     透過だけ上げると、イラストの線と文字が重なって一気に読めなくなる。
+     .60 → .46 に上げたので、ボカシも 18px → 24px にしてある。 */
   [data-mode="kid"] .card {
-    background: rgba(255, 255, 255, .60);
-    -webkit-backdrop-filter: blur(18px) saturate(1.2);
-            backdrop-filter: blur(18px) saturate(1.2);
+    background: rgba(255, 255, 255, .46);
+    -webkit-backdrop-filter: blur(24px) saturate(1.25);
+            backdrop-filter: blur(24px) saturate(1.25);
   }
 
   /* 応援カードは元の暖色グラデを保ったまま透かす
      （白で塗りつぶすと、ここだけ冷たくなって浮く） */
   [data-mode="kid"] .cheer {
     background:
-      linear-gradient(135deg, rgba(255, 243, 214, .68), rgba(255, 226, 236, .68));
-    -webkit-backdrop-filter: blur(18px) saturate(1.2);
-            backdrop-filter: blur(18px) saturate(1.2);
+      linear-gradient(135deg, rgba(255, 243, 214, .54), rgba(255, 226, 236, .54));
+    -webkit-backdrop-filter: blur(24px) saturate(1.25);
+            backdrop-filter: blur(24px) saturate(1.25);
   }
 
-  /* ヘッダとボトムナビも透かす。
+  /* ヘッダ・サイドメニュー・ボトムナビも透かす。
      背景の絵を画面の少し上へ持ち上げたぶん、ここが不透明だと
      絵がまた隠れてしまう。
-     ★ただしカードより濃くする（.88）。
+     ★ただしカードより濃くする（.70）。
        ナビの文字は小さく、常に画面に出ているので、
        ここで読みにくくなると毎回のストレスになる。 */
   [data-mode="kid"] .hdr,
+  [data-mode="kid"] .side,
   [data-mode="kid"] .bottom {
-    background: rgba(255, 255, 255, .82);
-    -webkit-backdrop-filter: blur(18px) saturate(1.1);
-            backdrop-filter: blur(18px) saturate(1.1);
+    background: rgba(255, 255, 255, .70);
+    -webkit-backdrop-filter: blur(24px) saturate(1.1);
+            backdrop-filter: blur(24px) saturate(1.1);
   }
 
   /* ミッションカードは元がグラデ。透かすと数字が沈むので、
      色は保ったまま少しだけ透過させる */
   [data-mode="kid"] .mission {
     background:
-      linear-gradient(135deg, rgba(255, 217, 232, .70), rgba(255, 233, 208, .70));
-    -webkit-backdrop-filter: blur(16px);
-            backdrop-filter: blur(16px);
+      linear-gradient(135deg, rgba(255, 217, 232, .58), rgba(255, 233, 208, .58));
+    -webkit-backdrop-filter: blur(22px);
+            backdrop-filter: blur(22px);
   }
 
   /* 練習メニューのカードも透かす。
      ★選んだ状態は「濃くする」ことで残す。
-       未選択(.62)と選択済み(.88)で不透明度に差をつけているので、
+       未選択(.48)と選択済み(.82)で不透明度に差をつけているので、
        背景の絵が透けていても、どれを押したか一目で分かる。
        状態を色だけに頼らせない（チェックマークも別に出している）。 */
   [data-mode="kid"] .menu-card {
-    background: rgba(255, 255, 255, .62);
-    -webkit-backdrop-filter: blur(18px) saturate(1.2);
-            backdrop-filter: blur(18px) saturate(1.2);
+    background: rgba(255, 255, 255, .48);
+    -webkit-backdrop-filter: blur(24px) saturate(1.25);
+            backdrop-filter: blur(24px) saturate(1.25);
   }
   [data-mode="kid"] .menu-card[aria-pressed="true"] {
-    background: rgba(255, 227, 238, .88);
+    background: rgba(255, 227, 238, .82);
   }
 
   /* 週スタンプの丸も、背景がうっすら透けるくらいに */
   [data-mode="kid"] .stamp-day__mark {
-    background: rgba(253, 242, 247, .72);
+    background: rgba(253, 242, 247, .62);
   }
+
+  /* ★タイムラインの見出し列だけはほぼ不透明のままにする。
+     横スクロールで棒が文字の裏を通るので、ここを透かすと読めなくなる。 */
+  [data-mode="kid"] .gantt__label { background: rgba(255, 255, 255, .92); }
 }
 /* こどもは的を大きく。SVG なので font-size ではなく実寸を上げる */
 [data-mode="kid"] .bottom__item .ico-svg { width: 28px; height: 28px; }
 [data-mode="kid"] .bottom__item { font-size: 12px; }
+
+/* サイドメニューもこどもは大きく。
+   ★ボトムナビと同じ「押しやすさ」を保つ。
+     PCでもタッチのiPadでも同じ画面なので、小さくしない。 */
+[data-mode="kid"] .side__item { min-height: 52px; font-size: var(--fs-sm); font-weight: 800; }
+[data-mode="kid"] .side__item .ico-svg { width: 24px; height: 24px; }
 
 /* =====================================================================
    今日のミッション（ホーム上部）
@@ -249,6 +264,36 @@
 
 .reward-track { display: flex; flex-wrap: wrap; gap: 6px; font-size: 22px; margin-top: var(--sp-2); }
 .reward-track .off { opacity: .28; filter: grayscale(1); }
+
+/* =====================================================================
+   いま取り組んでいること（行動目標のチェック）
+   ・カード全体が押せる。小さいチェックボックスを狙わせない
+   ・状態は色だけでなく、チェックマークと打ち消し線でも伝える
+   ===================================================================== */
+.task-row {
+  display: flex; align-items: flex-start; gap: var(--sp-3);
+  width: 100%; min-height: var(--tap);
+  padding: var(--sp-3) var(--sp-2);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  transition: transform .12s var(--ease);
+}
+.task-row:active { transform: scale(.98); }
+.task-row__box {
+  flex: none; width: 30px; height: 30px; border-radius: 50%;
+  border: 3px solid var(--border); background: var(--surface);
+  display: grid; place-content: center;
+  font-size: 17px; font-weight: 900; color: var(--accent-ink);
+}
+.task-row[aria-pressed="true"] .task-row__box {
+  background: var(--ok); border-color: var(--ok);
+}
+.task-row__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.task-row__title { font-size: var(--fs-sm); font-weight: 800; }
+.task-row[aria-pressed="true"] .task-row__title {
+  text-decoration: line-through; color: var(--text-sub);
+}
+.task-row__note { font-size: var(--fs-xs); color: var(--text-sub); font-weight: 600; }
 
 /* =====================================================================
    もくひょう（山のぼり表示）

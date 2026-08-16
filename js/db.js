@@ -175,10 +175,50 @@ export async function upsertGoal(goal) {
   return data;
 }
 
-export async function softDeleteGoal(id) {
-  const { error } = await supabase
-    .from('idol_goals').update({ deleted_at: new Date().toISOString() }).eq('id', id);
+/**
+ * 既存の目標の一部の列だけを書き換える。
+ * ★upsert を使ってはいけない。upsert は INSERT ... ON CONFLICT なので、
+ *   title のような NOT NULL 列を含めずに投げると、衝突を見つける前に
+ *   NOT NULL 違反で落ちる。完了トグルのような部分更新はこちらを使う。
+ */
+export async function updateGoal(id, patch) {
+  const { data, error } = await supabase
+    .from('idol_goals').update(patch).eq('id', id).select().maybeSingle();
   guard(error);
+  return data;
+}
+
+/**
+ * 目標を消す（トゥームストーン）。
+ * ★配下の目標もまとめて渡すこと。外部キーの on delete cascade は
+ *   物理削除のときしか働かないので、親だけ消すと子が「親のいない行」として
+ *   残り、画面のどこにも出ないまま進捗の計算にだけ効いてしまう。
+ *   どの行が配下かはツリーを持っている呼び出し側が知っている。
+ * @param {string|string[]} ids
+ */
+export async function softDeleteGoal(ids) {
+  const list = Array.isArray(ids) ? ids : [ids];
+  if (!list.length) return;
+  const { error } = await supabase
+    .from('idol_goals').update({ deleted_at: new Date().toISOString() }).in('id', list);
+  guard(error);
+}
+
+/**
+ * 雛形のロードマップをまとめて入れる。
+ * ★1回の insert で入れる。ID は goal-templates.js が採番済みなので、
+ *   親→子の順に並んでいれば同じ文の中で外部キーを満たせる。
+ *   1行ずつ往復すると、途中で失敗したとき木が半分だけ残る。
+ */
+export async function insertGoals(rows) {
+  if (!rows?.length) return [];
+  const familyId = fam();
+  const { data, error } = await supabase
+    .from('idol_goals')
+    .insert(rows.map((r) => ({ ...r, family_id: familyId })))
+    .select();
+  guard(error);
+  return data || [];
 }
 
 export async function seedRoadmap() {

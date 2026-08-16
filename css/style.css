@@ -22,9 +22,15 @@
 
   /* ── レイアウト ── */
   --tap: 44px;                 /* 最小タップ領域 */
-  --sidebar-w: 216px;
+  --sidebar-w: 232px;   /* 「オーディション」が省略記号にならない幅 */
   --header-h: 56px;
   --nav-h: 64px;
+  /* ★画面下端に浮かせる要素（トースト・更新バー）が、
+     ボトムナビをよけるための高さ。
+     サイドバー表示に切り替わるとナビが下から消えるので、
+     そのときは 0 にする。各所で --nav-h を直接使うと、
+     サイドバー表示時にトーストだけ宙に浮いたままになる。 */
+  --nav-safe: var(--nav-h);
   --shadow-1: 0 1px 3px rgba(40, 30, 50, .10);
   --shadow-2: 0 6px 20px rgba(40, 30, 50, .14);
   --ease: cubic-bezier(.25, .46, .45, .94);
@@ -123,21 +129,9 @@ img { max-width: 100%; display: block; }
   min-width: 0;
   grid-area: main;
   padding: var(--sp-4);
-  padding-bottom: calc(var(--nav-h) + var(--sp-6) + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--nav-safe) + var(--sp-6) + env(safe-area-inset-bottom));
   max-width: 1100px; width: 100%; margin: 0 auto;
   outline: none;
-}
-
-/* PC + おとなモードのみサイドバー表示 */
-@media (min-width: 900px) {
-  [data-mode="adult"] .shell {
-    grid-template-columns: var(--sidebar-w) 1fr;
-    grid-template-areas: "hdr hdr" "side main" "side main";
-    grid-template-rows: var(--header-h) 1fr;
-  }
-  [data-mode="adult"] .side { display: block; }
-  [data-mode="adult"] .bottom { display: none; }
-  [data-mode="adult"] .main { padding: var(--sp-5); padding-bottom: var(--sp-7); }
 }
 
 /* ── ヘッダ ── */
@@ -253,7 +247,22 @@ img { max-width: 100%; display: block; }
 .bottom__item .ico { line-height: 0; }
 .bottom__item[aria-current="page"] { color: var(--accent); }
 
-.side { padding: var(--sp-4) var(--sp-3); border-right: 1px solid var(--border); background: var(--surface); }
+/* ★メニューは画面と一緒にスクロールさせない。
+   sticky + align-self: start にしないと、grid の子は行いっぱいに
+   引き伸ばされて sticky が効かず、下までスクロールすると
+   メニューが上に流れて見えなくなる。 */
+.side {
+  position: sticky; top: var(--header-h); align-self: start;
+  /* min と max の両方を入れる。
+     min が無いと、項目が少ないときにパネルが途中で切れて
+     区切り線だけ宙に浮いて見える。
+     max が無いと、項目が増えたときに sticky がはみ出してスクロールできない。 */
+  min-height: calc(100dvh - var(--header-h));
+  max-height: calc(100dvh - var(--header-h));
+  overflow-y: auto; overscroll-behavior-y: contain;
+  padding: var(--sp-4) var(--sp-3);
+  border-right: 1px solid var(--border); background: var(--surface);
+}
 .side__item {
   display: flex; align-items: center; gap: var(--sp-3);
   width: 100%; min-height: var(--tap); padding: 0 var(--sp-3);
@@ -261,9 +270,38 @@ img { max-width: 100%; display: block; }
   font-size: var(--fs-md); font-weight: 600; text-align: left;
   text-decoration: none;
 }
+.side__item + .side__item { margin-top: 2px; }
 .side__item:hover { background: var(--surface-2); color: var(--text); }
 .side__item[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
+/* 選択中を色だけで示さない。左の帯で「いまここ」を出す */
+.side__item[aria-current="page"] { box-shadow: inset 3px 0 0 var(--accent); }
 .side__sep { height: 1px; background: var(--border); margin: var(--sp-3) var(--sp-2); }
+/* ラベルは縮ませる。長い項目名でサイドバーの幅が押し広げられないように */
+.side__item > span:not(.ico) {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* =====================================================================
+   タブレット / PC: ボトムナビ → 左サイドメニュー
+   ・しきい値 768px は iPad の縦持ちの幅。ここから効かせないと、
+     iPad を縦にした瞬間だけスマホ用のボトムナビに戻ってしまう。
+   ・★こども/おとな両方に適用する（以前はおとなモードだけだった）。
+     指の届きやすさでボトムナビにしていたが、画面が広いと
+     下端は逆に遠い。横幅も余るので、メニューは左に置くほうが素直。
+   ===================================================================== */
+@media (min-width: 768px) {
+  :root { --nav-safe: 0px; }
+
+  .shell {
+    grid-template-columns: var(--sidebar-w) 1fr;
+    grid-template-areas: "hdr hdr" "side main";
+    grid-template-rows: var(--header-h) 1fr;
+  }
+  .side { display: block; }
+  .bottom { display: none; }
+  .main { padding: var(--sp-5); padding-bottom: var(--sp-7); }
+}
+
 
 /* =====================================================================
    共通コンポーネント
@@ -367,6 +405,127 @@ img { max-width: 100%; display: block; }
 .ring__fill  { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset .5s var(--ease); }
 .ring__label { position: absolute; font-weight: 800; font-size: var(--fs-lg); }
 
+/* =====================================================================
+   目標のタイムライン（横軸＝時間 / 縦軸＝目標）
+   ・階層の深さを「1色の濃淡」で表す。順序のある尺度なので、
+     色相を4つ配るより濃淡のほうが順番がそのまま読める。
+     色覚特性があっても明るさの差は残る。
+   ・淡い段は下地とのコントラストが 3:1 に届かないため、
+     ★棒には必ず輪郭線を、行には必ず文字ラベルを出す。
+     色だけに意味を持たせない（凡例も文字つき）。
+   ===================================================================== */
+:root {
+  /* 濃 → 淡 ＝ 最終目標 → 中間目標 → 月の目標 → 行動目標。
+     明度が単調に上がるように選んである（順序が読める条件）。 */
+  --lv-0: #a12f5c;
+  --lv-1: #cf4b81;
+  --lv-2: #ff6fa5;
+  --lv-3: #ffb3cd;
+}
+
+.gantt { --gantt-label-w: 124px; }
+.gantt__scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;   /* 端まで来ても画面ごと動かない */
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: var(--sp-2);
+}
+/* 目盛りが潰れない最低幅。これ未満の画面では横スクロールさせる */
+.gantt__inner { position: relative; min-width: 520px; }
+
+.gantt__row {
+  position: relative;
+  display: grid; grid-template-columns: var(--gantt-label-w) 1fr;
+  align-items: center; min-height: 26px;
+}
+.gantt__row--head { min-height: 24px; margin-bottom: var(--sp-1); }
+
+/* 左の見出し列。横スクロールしても残す。
+   ★背景は不透明にする。半透明だと、スクロール中に棒が
+     文字の裏を通り抜けて読めなくなる。 */
+.gantt__label {
+  position: sticky; left: 0; z-index: 2;
+  display: flex; align-items: center; gap: 5px;
+  min-width: 0; padding-right: var(--sp-2);
+  background: var(--surface);
+  font-size: var(--fs-xs); font-weight: 600;
+}
+.gantt__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gantt__name.is-done { text-decoration: line-through; color: var(--text-sub); }
+
+.gantt__track { position: relative; height: 16px; }
+
+/* 棒＝期間、中の塗り＝達成率 */
+.gantt__bar {
+  position: absolute; top: 0; height: 100%;
+  min-width: 3px;
+  border-radius: 4px;
+  border: 1px solid rgba(40, 30, 50, .22);
+  overflow: hidden;
+  z-index: 1;
+}
+/* 下地は「その段の色を薄く」。currentColor を使うので、
+   色の指定は data-rank の1行だけで済む。
+   ★薄さも段ごとに変える。色そのものの明度差だけだと、
+     達成率0%（＝塗りが無い）の棒どうしが見分けられなくなる。
+     濃さが 上の段ほど濃い → そのまま順序として読める。 */
+.gantt__bar::before {
+  content: ''; position: absolute; inset: 0;
+  background: currentColor; opacity: var(--tint, .3);
+}
+.gantt__fill {
+  position: relative; display: block; height: 100%;
+  background: currentColor; border-radius: 3px;
+  transition: width .4s var(--ease);
+}
+.gantt__bar[data-rank="0"] { color: var(--lv-0); --tint: .70; }
+.gantt__bar[data-rank="1"] { color: var(--lv-1); --tint: .52; }
+.gantt__bar[data-rank="2"] { color: var(--lv-2); --tint: .38; }
+.gantt__bar[data-rank="3"] { color: var(--lv-3); --tint: .26; }
+.gantt__dot[data-rank="0"] { color: var(--lv-0); }
+.gantt__dot[data-rank="1"] { color: var(--lv-1); }
+.gantt__dot[data-rank="2"] { color: var(--lv-2); }
+.gantt__dot[data-rank="3"] { color: var(--lv-3); }
+
+.gantt__dot {
+  width: 9px; height: 9px; border-radius: 50%; flex: none;
+  background: currentColor; border: 1px solid rgba(40, 30, 50, .22);
+}
+.gantt__nodate { font-size: var(--fs-xs); color: var(--text-sub); }
+
+/* 月の区切り線と「今日」の線。
+   overlay の left をラベル列の幅ぴったりにしてあるので、
+   中の % はそのまま時間軸の % になる（行に gap を入れてはいけない） */
+.gantt__overlay {
+  position: absolute; top: 0; bottom: 0; left: var(--gantt-label-w); right: 0;
+  pointer-events: none; z-index: 0;
+}
+.gantt__gridline { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--border); }
+.gantt__now { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--danger); opacity: .6; }
+.gantt__now-tag { color: var(--danger); font-weight: 800; font-size: var(--fs-xs); }
+.gantt__tick {
+  position: absolute; top: 0;
+  padding-left: 4px;
+  border-left: 1px solid var(--border);
+  font-size: var(--fs-xs); color: var(--text-sub); font-weight: 700;
+  white-space: nowrap; overflow: hidden;
+}
+
+.gantt__legend {
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-top: var(--sp-3);
+  font-size: var(--fs-xs); color: var(--text-sub); font-weight: 600;
+}
+.gantt__legend-item { display: inline-flex; align-items: center; gap: 5px; }
+.gantt__legend-line { width: 2px; height: 12px; background: var(--danger); display: inline-block; }
+
+@media (min-width: 768px) {
+  .gantt { --gantt-label-w: 220px; }
+  .gantt__inner { min-width: 640px; }
+  .gantt__row { min-height: 30px; }
+  .gantt__track { height: 18px; }
+}
+
 /* ── 空状態 ── */
 .empty {
   text-align: center; padding: var(--sp-7) var(--sp-4); color: var(--text-sub);
@@ -389,7 +548,7 @@ img { max-width: 100%; display: block; }
 
 /* ── トースト ── */
 .toast-root {
-  position: fixed; left: 50%; bottom: calc(var(--nav-h) + var(--sp-4));
+  position: fixed; left: 50%; bottom: calc(var(--nav-safe) + var(--sp-4));
   transform: translateX(-50%); z-index: 80;
   display: flex; flex-direction: column; gap: var(--sp-2); align-items: center;
   pointer-events: none; width: min(92vw, 420px);
@@ -426,6 +585,21 @@ img { max-width: 100%; display: block; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn  { from { opacity: 0; transform: translateY(10px) scale(.97); } to { opacity: 1; transform: none; } }
 
+/* ── 雛形えらび（目標のテンプレート）── */
+.tpl-list { display: grid; gap: var(--sp-2); margin-bottom: var(--sp-4); }
+.tpl {
+  display: flex; align-items: flex-start; gap: var(--sp-3);
+  padding: var(--sp-3);
+  border: 2px solid var(--border); border-radius: var(--r-md);
+  cursor: pointer;
+}
+.tpl:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+/* :has 未対応のブラウザでも、ラジオ自体が状態を示すので破綻はしない */
+.tpl input { margin-top: 4px; flex: none; }
+.tpl__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.tpl__name { font-weight: 800; font-size: var(--fs-md); }
+.tpl__note { font-size: var(--fs-xs); color: var(--text-sub); }
+
 /* ── PINテンキー ── */
 .pin-dots { display: flex; justify-content: center; gap: var(--sp-3); margin: var(--sp-4) 0; }
 .pin-dot {
@@ -453,7 +627,7 @@ img { max-width: 100%; display: block; }
 /* ── 更新バー / オフラインバー ── */
 .update-bar, .offline-bar {
   position: fixed; left: 50%; transform: translateX(-50%);
-  bottom: calc(var(--nav-h) + var(--sp-3));
+  bottom: calc(var(--nav-safe) + var(--sp-3));
   z-index: 85; width: min(94vw, 520px);
   display: flex; align-items: center; gap: var(--sp-2);
   padding: var(--sp-3) var(--sp-4);
